@@ -1,0 +1,5 @@
+{
+  "name": "Retail Inventory Dashboard",
+  "description": "A comprehensive dashboard for visualizing inventory, sales rankings, and stock levels from CSV data.",
+  "requestFramePermissions": []
+}
