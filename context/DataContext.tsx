@@ -7,7 +7,7 @@ import { parseCSV } from '../utils/csvParser';
 // ------------------------------------------------------------------
 // Al subir el archivo "INVENTARIO.csv" en la misma carpeta raíz que el index.html,
 // podemos acceder a él directamente.
-const LOCAL_CSV_FILE = "./INVENTARIO.csv";
+const LOCAL_CSV_FILE = "./SPSA.csv";
 // ------------------------------------------------------------------
 
 interface DataContextType {
