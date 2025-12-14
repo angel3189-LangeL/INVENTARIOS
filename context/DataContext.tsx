@@ -3,20 +3,11 @@ import { ProductRow } from '../types';
 import { parseCSV } from '../utils/csvParser';
 
 // ------------------------------------------------------------------
-// CONFIGURACIÓN DE URL DEL CSV (LINK GITHUB)
+// CONFIGURACIÓN DE URL DEL CSV (ARCHIVO LOCAL)
 // ------------------------------------------------------------------
-// INSTRUCCIONES:
-// 1. Sube tu archivo CSV a GitHub.
-// 2. Abre el archivo en GitHub y dale clic al botón "Raw" (Crudo).
-// 3. Copia esa URL y pégala abajo en la variable TARGET_GITHUB_URL.
-//
-// Ejemplo: "https://raw.githubusercontent.com/usuario/repo/main/inventario.csv"
-//
-// NOTA: Para probar la app ahora mismo, he dejado una "Data URI" con datos de ejemplo.
-// Borra todo el string largo y pon tu link entre comillas.
-// ------------------------------------------------------------------
-
-const TARGET_GITHUB_URL = "data:text/csv;charset=utf-8;base64,Q0FERU5BO0NORDtERVNDUklQQ0lPTjtNQVJDQTtDT0QgTE9DQUw7REVTQ1JJUENJT04gTE9DQUw7Rk9STUFUTztWVEE7U1RPQ0s7REVTQ1JJUENJT04gTE9DQUwyCkNBREVOQSBBOzEwMDExO1BvbG8gQmFzaWNvO0FETUlEO0wwMTtDRU5UUkFMO1RJRU5EQTsxMDs1O1RJRU5EQSBDRU5UUkFMCkNBREVOQSBBOzEwMDEyO1BhbnRhbG9uIEplYW47TEVWSVM7TDAxO0NFTlRSQUw7VElFTkRBOzU7LTI7VElFTkRVIENFTlRSQUwKQ0FERU5BIEE7MTAwMTM7Q2FtaXNhIEZvcm1hbDtZVkVTO0wwMTtDRU5UUkFMO1RJRU5EQTs0MDs4MDtUSUVuREEgQ0VOVFJBRApDQURFTkEgQTsxMDAxNDtTaG9ydCBEZXBvcnRpdm87QURJREFTO0wwMjtOT1JURTtUSUVuREE7Mjg7MTU7VElFTkRBIE5PUlRFCkNBREVOQSBBOzEwMDE1O1phcGF0aWxsYXMgUnVuO05JS0U7TDAyO05PUlRFO1RJRU5EQTs2MDsxMTA7VElFTkRBIE5PUlRFCkNBREVOQSBBOzEwMDE2O1BvbGVyYSBBbGdvZG9uO1RPUFBUO0wwMjtOT1JURTtUSUVuREE7Mjs0O1RJRU5EQSBOT1JURQpDQURFTkEgQTsxMDAxNztCbHVzYSBTZWRhO1pBUkE7TDAzO1NVUjtUSUVuREE7MTg7MjU7VElFTkRBIFNVUgpDQURFTkEgQTsxMDAxODtDYXNhY2EgUHVmZjtOT1JUSEZBQ0U7TDAzO1NVUjtUSUVuREE7NDU7NjA7VElFTkRBIFNVUgo=";
+// Al subir el archivo "INVENTARIO.csv" en la misma carpeta raíz que el index.html,
+// podemos acceder a él directamente.
+const LOCAL_CSV_FILE = "./INVENTARIO.csv";
 // ------------------------------------------------------------------
 
 interface DataContextType {
@@ -55,32 +46,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loadDataFromUrl = async (url: string) => {
-    // If no URL provided, use default
-    const targetUrl = url || TARGET_GITHUB_URL;
-    
-    if (!targetUrl) return;
-
     setIsLoading(true);
     try {
-      // Basic fetch with CORS handling assumption (GitHub Raw supports CORS)
-      const response = await fetch(targetUrl);
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
       
+      const contentType = response.headers.get("content-type");
       const text = await response.text();
+
+      // Basic validation: Check if it looks like HTML (error page) instead of CSV
+      if (text.trim().startsWith("<!DOCTYPE html") || text.trim().startsWith("<html")) {
+          throw new Error("El archivo no parece ser un CSV válido (se recibió HTML).");
+      }
+
       const parsedData = await parseCSV(text);
       
       if (parsedData.length === 0) {
-        throw new Error("No se encontraron datos válidos.");
+        console.warn("El CSV cargado está vacío.");
       }
       
       setData(processData(parsedData));
     } catch (error) {
-      console.error("Error fetching CSV from URL", error);
-      // We do not alert here to avoid annoying popups on load if URL is broken,
-      // instead we let the Layout handle the empty state.
+      console.error("Error cargando CSV local:", error);
+      // No mostramos alerta intrusiva aquí para permitir que la UI muestre el cargador manual si falla
     } finally {
       setIsLoading(false);
     }
@@ -90,8 +81,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Auto-load data on mount
   useEffect(() => {
-    if (TARGET_GITHUB_URL && data.length === 0) {
-        loadDataFromUrl(TARGET_GITHUB_URL);
+    if (data.length === 0) {
+        loadDataFromUrl(LOCAL_CSV_FILE);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
