@@ -209,18 +209,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 6. Setup Interval for updates (Only works reliably for GitHub)
       if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
       if (apiUrl) {
+          console.log(`Iniciando chequeo automático cada ${UPDATE_CHECK_INTERVAL/1000} segundos.`);
           checkIntervalRef.current = setInterval(() => {
               const now = new Date();
               const hour = now.getHours();
               const day = now.getDay(); 
 
+              // Lunes (1) a Viernes (5)
               const isWeekDay = day >= 1 && day <= 5; 
-              const isWorkHour = hour >= 8 && hour < 12;
+              // 9:00 a 11:59 (menor a 12)
+              const isWorkHour = hour >= 9 && hour < 12;
 
               if (isWeekDay && isWorkHour) {
                   checkGitHubUpdate(targetUrl);
               } else {
-                  console.log(`Sincronización pausada. Hora: ${now.toLocaleTimeString()}, Día: ${day}. Regla: L-V 08:00-12:00.`);
+                  console.log(`Sincronización pausada. Hora: ${now.toLocaleTimeString()}, Día: ${day}. Regla: L-V 09:00-12:00.`);
               }
           }, UPDATE_CHECK_INTERVAL);
       }
