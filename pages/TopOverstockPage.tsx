@@ -73,7 +73,7 @@ export const TopOverstockPage: React.FC = () => {
                         <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-16 sm:w-auto">Tienda</th>
                         <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-14 sm:w-auto">Marca</th>
                         <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-auto">Descripción</th>
-                        <th className="px-1 py-1 sm:px-6 sm:py-3 text-right text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-12 sm:w-24">Stock</th>
+                        <th className="px-1 py-1 sm:px-6 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-12 sm:w-24">Stock</th>
                     </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -90,7 +90,7 @@ export const TopOverstockPage: React.FC = () => {
                                     {row.DESCRIPCION}
                                 </div>
                             </td>
-                            <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-[10px] sm:text-sm text-right font-bold text-green-700 align-top">
+                            <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-[10px] sm:text-sm text-center font-bold text-green-700 align-top">
                                 {row.STOCK}
                             </td>
                             </tr>
