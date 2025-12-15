@@ -5,7 +5,8 @@ import { parseCSV } from '../utils/csvParser';
 // ------------------------------------------------------------------
 // CONFIGURACIÓN POR DEFECTO
 // ------------------------------------------------------------------
-const DEFAULT_CLOUD_URL = "https://raw.githubusercontent.com/angel3189-LangeL/INVENTARIOS/main/INVENTARIO.csv";
+// Actualizado al nuevo link de GitHub Raw
+const DEFAULT_CLOUD_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/refs/heads/main/INVENTARIO.csv";
 const STORAGE_URL_KEY = 'app_inventory_csv_url';
 // Intervalo de chequeo de actualizaciones (5 minutos = 300,000 ms)
 const UPDATE_CHECK_INTERVAL = 300000; 
@@ -61,7 +62,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLastCheckTime(new Date()); // Actualizamos la hora de verificación
     const apiUrl = getGitHubApiUrl(url);
     if (!apiUrl) {
-        console.warn("No es una URL de GitHub válida para API check");
+        // No es GitHub, no podemos chequear SHA via API
         return false;
     }
 
@@ -120,6 +121,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (targetUrl.includes('github.com') && targetUrl.includes('/blob/')) {
       targetUrl = targetUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
     }
+    // Clean /refs/heads/ to standarize standard raw url
     if (targetUrl.includes('raw.githubusercontent.com') && targetUrl.includes('/refs/heads/')) {
         targetUrl = targetUrl.replace('/refs/heads/', '/');
     }
@@ -129,7 +131,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let usedProxy = false;
 
       // Intentar obtener el SHA actual antes de cargar (si es GitHub)
-      // Esto sirve para establecer el "punto de partida" para futuras comparaciones
       const apiUrl = getGitHubApiUrl(targetUrl);
       if (apiUrl) {
          fetch(apiUrl).then(r => r.json()).then(d => {
@@ -143,9 +144,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-         // 2. Attempt Fetch
-         // Si es forceRefresh, agregamos timestamp para evitar caché y forzamos red
-         // Si NO es forceRefresh (carga inicial), dejamos que el navegador use su caché (cache: default)
+         // ESTRATEGIA DE CARGA: Directa -> Proxy 1 (corsproxy.io) -> Proxy 2 (allorigins)
+         
+         // INTENTO 1: Fetch Directo
          let fetchUrl = targetUrl;
          const options: RequestInit = {};
 
@@ -161,14 +162,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
          const response = await fetch(fetchUrl, options);
          if (!response.ok) throw new Error(`Direct Status ${response.status}`);
          text = await response.text();
+
       } catch (directError) {
-         console.warn(`Carga directa fallida para ${targetUrl}. Intentando vía Proxy...`, directError);
+         console.warn(`Carga directa fallida para ${targetUrl}. Intentando Proxies...`, directError);
          usedProxy = true;
-         // 3. Attempt via CORS Proxy (si falla la directa)
-         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}&disableCache=${Date.now()}`;
-         const response = await fetch(proxyUrl);
-         if (!response.ok) throw new Error(`Proxy fetch failed: ${response.status}`);
-         text = await response.text();
+         
+         try {
+             // INTENTO 2: corsproxy.io
+             const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+             console.log("Intentando corsproxy.io...");
+             const response = await fetch(proxyUrl);
+             if (!response.ok) throw new Error(`Proxy 1 Status: ${response.status}`);
+             text = await response.text();
+         } catch (proxy1Error) {
+             console.warn(`Proxy 1 falló. Intentando Proxy 2...`, proxy1Error);
+             
+             // INTENTO 3: allorigins.win
+             const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}&disableCache=${Date.now()}`;
+             console.log("Intentando allorigins...");
+             const response = await fetch(proxyUrl);
+             if (!response.ok) throw new Error(`Proxy 2 Status: ${response.status}`);
+             text = await response.text();
+         }
       }
 
       // 4. Basic Validation
@@ -193,9 +208,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           checkIntervalRef.current = setInterval(() => {
               const now = new Date();
               const hour = now.getHours();
-              const day = now.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sabado
+              const day = now.getDay(); 
 
-              // REGLA: Lunes a Viernes (1-5) Y Hora entre 8:00 y 12:00
               const isWeekDay = day >= 1 && day <= 5; 
               const isWorkHour = hour >= 8 && hour < 12;
 
@@ -223,7 +237,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setCustomUrl = (url: string) => {
       if (url) {
         localStorage.setItem(STORAGE_URL_KEY, url);
-        // Cuando configuramos una nueva URL manualmente, forzamos la carga
         loadDataFromUrl(url, true);
       } else {
         localStorage.removeItem(STORAGE_URL_KEY);
@@ -237,7 +250,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshData = () => {
       const url = getCustomUrl();
-      // Botón "Actualizar" -> Forzar descarga
       loadDataFromUrl(url, true);
   };
 
@@ -247,7 +259,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const targetUrl = savedUrl || DEFAULT_CLOUD_URL;
     
     if (targetUrl && data.length === 0) {
-        // Carga inicial: No forzamos refresh, usamos caché de navegador si existe
         loadDataFromUrl(targetUrl, false);
     }
     return () => {
