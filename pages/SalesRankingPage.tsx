@@ -53,6 +53,8 @@ const CustomizedYAxisTick = (props: any) => {
           {line.trim()}
         </text>
       ))}
+      {/* Línea marca de agua separadora */}
+      <line x1={-150} y1={20} x2={0} y2={20} stroke="#cbd5e1" strokeWidth={1} strokeOpacity={0.5} />
     </g>
   );
 };
