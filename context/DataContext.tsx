@@ -3,10 +3,9 @@ import { ProductRow } from '../types';
 import { parseCSV } from '../utils/csvParser';
 
 // ------------------------------------------------------------------
-// CONFIGURACIÓN POR DEFECTO
+// CONFIGURACIÓN POR DEFECTO (GITHUB)
 // ------------------------------------------------------------------
-// Restored GitHub Link as requested
-const DEFAULT_CLOUD_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/refs/heads/main/INVENTARIO.csv";
+const DEFAULT_CLOUD_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/main/INVENTARIO.csv";
 const STORAGE_URL_KEY = 'app_inventory_csv_url';
 // Intervalo de chequeo de actualizaciones (5 minutos = 300,000 ms)
 const UPDATE_CHECK_INTERVAL = 300000; 
@@ -51,7 +50,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getGitHubApiUrl = (rawUrl: string) => {
     // Regex para capturar owner, repo, branch, path
     // raw.githubusercontent.com/USER/REPO/BRANCH/PATH...
-    const match = rawUrl.match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)/);
+    // Soporta raw.githubusercontent.com/USER/REPO/main/FILE o refs/heads/main/FILE
+    
+    // Limpieza preventiva de la URL para la API
+    let cleanUrl = rawUrl;
+    if (cleanUrl.includes('/refs/heads/')) {
+        cleanUrl = cleanUrl.replace('/refs/heads/', '/');
+    }
+
+    const match = cleanUrl.match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)/);
     if (!match) return null;
     const [_, owner, repo, branch, path] = match;
     // URL API: https://api.github.com/repos/USER/REPO/contents/PATH?ref=BRANCH
@@ -116,12 +123,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     setIsUpdateAvailable(false); // Reset flag al cargar
     
-    // 1. Clean URL Logic
+    // 1. Clean URL Logic (Fix GitHub Raw Links)
     let targetUrl = url.trim();
+    
+    // Convert blob to raw if user pastes browser link
     if (targetUrl.includes('github.com') && targetUrl.includes('/blob/')) {
       targetUrl = targetUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
     }
-    // Clean /refs/heads/ to standarize standard raw url
+    // Remove refs/heads/ which breaks raw links sometimes
     if (targetUrl.includes('raw.githubusercontent.com') && targetUrl.includes('/refs/heads/')) {
         targetUrl = targetUrl.replace('/refs/heads/', '/');
     }
@@ -186,11 +195,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
          }
       }
 
-      // 4. Basic Validation
-      if (text.trim().startsWith("<!DOCTYPE html") || text.trim().startsWith("<html")) {
-          throw new Error("El archivo descargado no es un CSV válido (se recibió HTML). Verifique el enlace.");
-      }
-
       // 5. Parse
       const parsedData = await parseCSV(text);
       
@@ -202,7 +206,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setData(processData(parsedData));
 
-      // 6. Setup Interval for updates
+      // 6. Setup Interval for updates (Only works reliably for GitHub)
       if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
       if (apiUrl) {
           checkIntervalRef.current = setInterval(() => {

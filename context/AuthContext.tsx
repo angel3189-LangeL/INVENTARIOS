@@ -22,8 +22,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const SESSION_KEY = 'app_session_user';
 const LOCAL_USERS_CACHE = 'app_users_cache';
 
-// URL FIJA PARA USUARIOS - Actualizada
-const DEFAULT_USERS_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/refs/heads/main/users.json";
+// URL FIJA PARA USUARIOS - GitHub Raw directo (Corregido)
+const DEFAULT_USERS_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/main/users.json";
 
 const DEFAULT_USERS: User[] = [
     { username: 'ADMIN', pass: '123456', role: 'ADMINISTRADOR' }
@@ -37,9 +37,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Helper para convertir URL Raw de GitHub si es necesario
   const processUrl = (url: string) => {
       let finalUrl = url;
+      // Corregir si el usuario pega un link de blob
       if (finalUrl.includes('github.com') && finalUrl.includes('/blob/')) {
           finalUrl = finalUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
       }
+      // Corregir refs/heads que a veces se copian mal
       if (finalUrl.includes('raw.githubusercontent.com') && finalUrl.includes('/refs/heads/')) {
           finalUrl = finalUrl.replace('/refs/heads/', '/');
       }
@@ -50,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
         const targetUrl = processUrl(DEFAULT_USERS_URL);
         // Agregamos timestamp para evitar caché agresivo del navegador
+        console.log("Cargando usuarios desde:", targetUrl);
         const res = await fetch(`${targetUrl}?t=${Date.now()}`);
         if (res.ok) {
             const data = await res.json();

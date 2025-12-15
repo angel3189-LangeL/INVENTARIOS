@@ -45,8 +45,13 @@ export const SalesRankingPage: React.FC = () => {
       }
     });
 
+    // Shorten product names for mobile display
     return Array.from(prodMap.entries())
-      .map(([name, value]) => ({ name, value }))
+      .map(([name, value]) => {
+          // Keep name reasonably short for charts
+          const shortName = name.length > 25 ? name.substring(0, 25) + '...' : name;
+          return { name: shortName, fullName: name, value };
+      })
       .sort((a, b) => b.value - a.value)
       .slice(0, 15);
   }, [filteredData]);
@@ -84,21 +89,26 @@ export const SalesRankingPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Chart 1 */}
-        <div className="bg-white p-2 sm:p-4 rounded-lg shadow border border-gray-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 text-center">Top 15 Tiendas (Mayor Venta)</h3>
-          <div className="h-[600px] w-full">
+        <div className="bg-white p-3 sm:p-4 rounded-lg shadow border border-gray-200">
+          <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-2 text-center">Top 15 Tiendas (Mayor Venta)</h3>
+          <div className="h-[400px] sm:h-[600px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topStoresData} layout="vertical" margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+              <BarChart data={topStoresData} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
                 <XAxis type="number" hide />
-                {/* Increased width to 220 to show full labels */}
-                <YAxis type="category" dataKey="name" width={220} tick={{fontSize: 11}} interval={0} />
+                <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={130} 
+                    tick={{fontSize: 10, fill: '#4b5563'}} 
+                    interval={0} 
+                />
                 <Tooltip 
-                    cursor={{fill: 'transparent'}}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                    cursor={{fill: '#f3f4f6'}}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '12px' }}
                     formatter={(value: number) => [`${value} unidades`, 'Ventas']}
                 />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16}>
                     {topStoresData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -109,21 +119,32 @@ export const SalesRankingPage: React.FC = () => {
         </div>
 
         {/* Chart 2 */}
-        <div className="bg-white p-2 sm:p-4 rounded-lg shadow border border-gray-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 text-center">Top 15 Productos (Mayor Venta)</h3>
-          <div className="h-[600px] w-full">
+        <div className="bg-white p-3 sm:p-4 rounded-lg shadow border border-gray-200">
+          <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-2 text-center">Top 15 Productos (Mayor Venta)</h3>
+          <div className="h-[400px] sm:h-[600px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topProductsData} layout="vertical" margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+              <BarChart data={topProductsData} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
                 <XAxis type="number" hide />
-                {/* Increased width to 220 to show full labels */}
-                <YAxis type="category" dataKey="name" width={220} tick={{fontSize: 11}} interval={0} />
-                 <Tooltip 
-                    cursor={{fill: 'transparent'}}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                    formatter={(value: number) => [`${value} unidades`, 'Ventas']}
+                <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={130} 
+                    tick={{fontSize: 10, fill: '#4b5563'}} 
+                    interval={0} 
                 />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                 <Tooltip 
+                    cursor={{fill: '#f3f4f6'}}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '12px' }}
+                    formatter={(value: number) => [`${value} unidades`, 'Ventas']}
+                    labelFormatter={(label, payload) => {
+                        if (payload && payload.length > 0) {
+                            return payload[0].payload.fullName;
+                        }
+                        return label;
+                    }}
+                />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16}>
                     {topProductsData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
