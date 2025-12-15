@@ -5,7 +5,7 @@ import { parseCSV } from '../utils/csvParser';
 // ------------------------------------------------------------------
 // CONFIGURACIÓN POR DEFECTO
 // ------------------------------------------------------------------
-// Actualizado al nuevo link de GitHub Raw
+// Restored GitHub Link as requested
 const DEFAULT_CLOUD_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/refs/heads/main/INVENTARIO.csv";
 const STORAGE_URL_KEY = 'app_inventory_csv_url';
 // Intervalo de chequeo de actualizaciones (5 minutos = 300,000 ms)
@@ -274,7 +274,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <DataContext.Provider value={{ 
         data, 
-        isLoading,
+        isLoading, 
         isUpdateAvailable, 
         currentSha,
         lastCheckTime,
