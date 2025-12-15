@@ -89,7 +89,15 @@ export const Layout: React.FC = () => {
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
 
-              <span className="font-bold text-lg sm:text-xl tracking-wider truncate">DASHBOARD</span>
+              <div className="flex items-center gap-2">
+                 <img 
+                    src="/logo.png" 
+                    alt="Logo" 
+                    className="h-9 w-auto object-contain bg-white rounded-md p-0.5" 
+                    onError={(e) => e.currentTarget.style.display = 'none'} 
+                 />
+                 <span className="font-bold text-lg sm:text-xl tracking-wider truncate hidden xs:block">DASHBOARD</span>
+              </div>
             </div>
             
             {/* Desktop Navigation (Hidden on Mobile) */}

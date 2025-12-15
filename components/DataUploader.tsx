@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Upload, Link as LinkIcon, DownloadCloud, Github, RefreshCw, Radio } from 'lucide-react';
+import { Upload, Link as LinkIcon, Github, RefreshCw, Radio } from 'lucide-react';
 import { useData } from '../context/DataContext';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export const DataUploader: React.FC = () => {
   const { loadData, loadDataFromUrl, isLoading, data, setCustomUrl, getCustomUrl, checkForUpdates } = useData();
@@ -64,9 +64,9 @@ export const DataUploader: React.FC = () => {
                     <Github className="h-8 w-8 sm:h-10 sm:w-10" />
                 </div>
             </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Sincronización de Datos</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Sincronización con GitHub</h2>
           <p className="text-gray-500 mb-6 sm:mb-8 text-sm">
-            El sistema está configurado para leer automáticamente desde el SERVIDOR.
+            El sistema está configurado para leer automáticamente desde el REPOSITORIO.
           </p>
 
           <div className="space-y-6">
@@ -97,7 +97,7 @@ export const DataUploader: React.FC = () => {
                             </span>
                         ) : (
                             <>
-                                <DownloadCloud className="mr-2 h-5 w-5" />
+                                <Github className="mr-2 h-5 w-5" />
                                 Recargar Datos
                             </>
                         )}
@@ -107,7 +107,7 @@ export const DataUploader: React.FC = () => {
                         onClick={handleManualCheck}
                         disabled={isLoading || isChecking}
                         className="flex-shrink-0 flex justify-center items-center py-3 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none transition-all"
-                        title="Verificar si hay cambios en el SERVIDOR ahora"
+                        title="Verificar si hay cambios en GitHub ahora"
                     >
                          <Radio className={`h-5 w-5 ${isChecking ? 'animate-pulse text-blue-600' : 'text-slate-500'}`} />
                     </button>
@@ -142,7 +142,7 @@ export const DataUploader: React.FC = () => {
             </div>
             
              <div className="mt-4 text-xs text-gray-400">
-                Para actualizar permanentemente, sube un nuevo <code>INVENTARIO.csv</code> al SERVIDOR.
+                Para actualizar permanentemente, sube un nuevo <code>INVENTARIO.csv</code> al REPOSITORIO.
             </div>
           </div>
         </div>

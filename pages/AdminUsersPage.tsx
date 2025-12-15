@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { UserPlus, Shield, Github, Search, Wifi, Loader, FileJson, Download } from 'lucide-react';
+import { Shield, Github, Search, Wifi, Loader, FileJson, Download } from 'lucide-react';
 
 export const AdminUsersPage: React.FC = () => {
   const { getUsers, createUser, usersUrl } = useAuth();
@@ -50,7 +50,7 @@ export const AdminUsersPage: React.FC = () => {
       if (hasUpdate) {
           setCheckResult('¡Nueva versión encontrada! Revisa la barra superior.');
       } else {
-          setCheckResult('El archivo está actualizado (No hay cambios en el SERVIDOR).');
+          setCheckResult('El archivo está actualizado (No hay cambios en GitHub).');
       }
       
       setTimeout(() => setCheckResult(''), 5000);
@@ -67,7 +67,7 @@ export const AdminUsersPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          
-         {/* Git Status / Info Section */}
+         {/* GitHub Status / Info Section */}
          <div className="bg-white p-6 rounded-lg shadow border border-gray-200 lg:col-span-2">
             <h3 className="text-base font-bold mb-4 text-gray-800 flex items-center border-b pb-2">
                 <Github className="w-5 h-5 mr-2 text-slate-700"/>

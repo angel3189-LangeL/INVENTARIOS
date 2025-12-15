@@ -123,10 +123,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     setIsUpdateAvailable(false); // Reset flag al cargar
     
-    // 1. Clean URL Logic (Fix GitHub Raw Links)
+    // 1. Clean URL Logic
     let targetUrl = url.trim();
     
-    // Convert blob to raw if user pastes browser link
+    // Fix GitHub Raw Links
     if (targetUrl.includes('github.com') && targetUrl.includes('/blob/')) {
       targetUrl = targetUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
     }
@@ -287,7 +287,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetData, 
         setCustomUrl, 
         getCustomUrl,
-        refreshData,
+        refreshData, 
         checkForUpdates,
         uniqueStores, 
         uniqueBrands, 
