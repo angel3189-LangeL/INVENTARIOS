@@ -55,20 +55,20 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Update Notification Banner */}
+      {/* Update Notification Banner - High Visibility */}
       {isUpdateAvailable && (
-        <div className="bg-blue-600 text-white px-4 py-2 shadow-md relative z-50">
-           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div className="flex items-center text-xs sm:text-sm font-medium">
-                    <AlertCircle className="w-4 h-4 mr-2 animate-pulse" />
-                    <span>Nueva versión disponible en SERVIDOR.</span>
+        <div className="bg-blue-700 text-white px-4 py-3 shadow-lg relative z-50 border-b-4 border-blue-500">
+           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                <div className="flex items-center text-sm sm:text-lg font-bold">
+                    <AlertCircle className="w-6 h-6 mr-3 text-yellow-300 animate-bounce" />
+                    <span>¡HAY UNA NUEVA VERSIÓN DE DATOS DISPONIBLE!</span>
                 </div>
                 <button 
                     onClick={() => refreshData()}
-                    className="bg-white text-blue-700 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wide hover:bg-blue-50 transition-colors flex items-center shadow-sm"
+                    className="bg-white text-blue-800 px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-wide hover:bg-blue-50 hover:scale-105 transition-all shadow-md flex items-center whitespace-nowrap"
                 >
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    Actualizar
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    ACTUALIZAR AHORA
                 </button>
            </div>
         </div>
@@ -120,9 +120,10 @@ export const Layout: React.FC = () => {
                 })}
             </nav>
 
-            {/* Right Side: Admin/Logout */}
+            {/* Right Side: Actions */}
             <div className="flex items-center space-x-2">
-                 {/* Mobile Admin/Logout */}
+                 
+                 {/* Mobile Actions */}
                  <div className="flex sm:hidden">
                     {user?.role === 'ADMINISTRADOR' && (
                         <button onClick={() => navigate('/admin-users')} className="p-2 text-slate-400 hover:text-white">

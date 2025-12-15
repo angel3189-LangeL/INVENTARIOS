@@ -7,8 +7,8 @@ import { parseCSV } from '../utils/csvParser';
 // ------------------------------------------------------------------
 const DEFAULT_CLOUD_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/main/INVENTARIO.csv";
 const STORAGE_URL_KEY = 'app_inventory_csv_url';
-// Intervalo de chequeo de actualizaciones (5 minutos = 300,000 ms)
-const UPDATE_CHECK_INTERVAL = 300000; 
+// Intervalo de chequeo de actualizaciones (3 minutos = 180,000 ms)
+const UPDATE_CHECK_INTERVAL = 180000; 
 // ------------------------------------------------------------------
 
 interface DataContextType {

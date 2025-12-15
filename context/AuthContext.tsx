@@ -15,7 +15,6 @@ interface AuthContextType {
   login: (username: string, pass: string, remember?: boolean) => Promise<boolean>;
   logout: () => void;
   createUser: (username: string, pass: string, role: User['role']) => Promise<{success: boolean, msg: string}>;
-  deleteUser: (username: string) => Promise<{success: boolean, msg: string}>;
   downloadUsersJson: () => void;
   getUsers: () => User[];
 }
@@ -176,28 +175,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const deleteUser = async (username: string) => {
-    if (username === 'ADMIN') {
-        return { success: false, msg: 'No se puede eliminar el usuario base ADMIN.' };
-    }
-    
-    let deleted = false;
-    
-    // Usamos functional update para evitar race conditions y asegurar consistencia
-    setUsersList(prev => {
-        const filteredList = prev.filter(u => u.username !== username);
-        if (filteredList.length !== prev.length) {
-            deleted = true;
-            localStorage.setItem(LOCAL_USERS_CACHE, JSON.stringify(filteredList));
-        }
-        return filteredList;
-    });
-    
-    // Retornamos true si se ejecutó la acción, aunque el estado update es asíncrono,
-    // para el usuario la acción es "exitosa" si no hubo errores.
-    return { success: true, msg: 'Usuario eliminado LOCALMENTE.' };
-  };
-
   const downloadUsersJson = () => {
     // Generar archivo JSON para descargar
     const dataStr = JSON.stringify(usersList, null, 2);
@@ -221,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, usersUrl: DEFAULT_USERS_URL, isLoadingAuth, authError, login, logout, createUser, deleteUser, downloadUsersJson, getUsers }}>
+    <AuthContext.Provider value={{ user, usersUrl: DEFAULT_USERS_URL, isLoadingAuth, authError, login, logout, createUser, downloadUsersJson, getUsers }}>
       {children}
     </AuthContext.Provider>
   );
