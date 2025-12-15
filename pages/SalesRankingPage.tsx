@@ -60,27 +60,27 @@ export const SalesRankingPage: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-             <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
-                <BarChart3 className="h-6 w-6 text-blue-600 mr-2" />
+      <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-200 sticky top-14 sm:top-16 z-40">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-1">
+             <h2 className="text-sm sm:text-base font-bold text-gray-900 flex items-center">
+                <BarChart3 className="h-5 w-5 text-blue-600 mr-2" />
                 Ranking de Ventas
             </h2>
-             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                <div className="w-full sm:w-56">
+             <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full md:w-auto">
+                <div className="w-full sm:w-48">
                     <SearchableSelect
                         options={uniqueFormats}
                         value={selectedFormat}
                         onChange={setSelectedFormat}
-                        placeholder="Filtro: Formato"
+                        placeholder="Formato"
                     />
                 </div>
-                <div className="w-full sm:w-56">
+                <div className="w-full sm:w-48">
                     <SearchableSelect
                         options={uniqueBrands}
                         value={selectedBrand}
                         onChange={setSelectedBrand}
-                        placeholder="Filtro: Marca"
+                        placeholder="Marca"
                     />
                 </div>
             </div>

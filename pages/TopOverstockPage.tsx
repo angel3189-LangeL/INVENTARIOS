@@ -23,31 +23,31 @@ export const TopOverstockPage: React.FC = () => {
   }, [data, selectedFormat, selectedBrand]);
 
   return (
-    <div className="space-y-4">
-       <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+    <div className="space-y-2">
+       <div className="bg-white p-2 rounded-lg shadow-sm border-l-4 border-green-500 sticky top-14 sm:top-16 z-40">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-1">
            <div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
-                <TrendingUp className="h-6 w-6 text-green-500 mr-2" />
+            <h2 className="text-sm sm:text-base font-bold text-gray-900 flex items-center">
+                <TrendingUp className="h-5 w-5 text-green-500 mr-2" />
                 Top Sobre Stock
             </h2>
-            <p className="text-xs sm:text-sm text-gray-500">Productos con stock {'>'} 50 und</p>
+            <p className="text-[10px] sm:text-xs text-gray-500 hidden sm:block">Productos con stock {'>'} 50 und</p>
            </div>
-           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-             <div className="w-full sm:w-56">
+           <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full md:w-auto">
+             <div className="w-full sm:w-48">
                 <SearchableSelect
                     options={uniqueFormats}
                     value={selectedFormat}
                     onChange={setSelectedFormat}
-                    placeholder="Filtro: Formato"
+                    placeholder="Formato"
                 />
              </div>
-             <div className="w-full sm:w-56">
+             <div className="w-full sm:w-48">
                 <SearchableSelect
                     options={uniqueBrands}
                     value={selectedBrand}
                     onChange={setSelectedBrand}
-                    placeholder="Filtro: Marca"
+                    placeholder="Marca"
                 />
              </div>
            </div>
@@ -64,46 +64,33 @@ export const TopOverstockPage: React.FC = () => {
          </div>
       ) : (
         <>
-            {/* MOBILE CARD VIEW */}
-            <div className="block sm:hidden space-y-3">
-                {overstockData.map((row, idx) => (
-                    <div key={idx} className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-600 relative">
-                        <div className="flex justify-between items-start mb-1">
-                            <span className="font-bold text-gray-800 text-sm truncate pr-2">{row['DESCRIPCION LOCAL2']}</span>
-                            <span className="text-xs font-semibold text-gray-500">{row.MARCA}</span>
-                        </div>
-                        <div className="text-sm text-gray-600 mb-2 leading-snug">
-                            {row.DESCRIPCION}
-                        </div>
-                        <div className="flex justify-end border-t border-gray-100 pt-2">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-400 uppercase font-semibold">Exceso:</span>
-                                <span className="font-bold text-green-700 text-base">{row.STOCK}</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* DESKTOP TABLE VIEW */}
-            <div className="hidden sm:block bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+            {/* TABLE VIEW (Compact Mobile / Standard Desktop) */}
+            <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
                 <div className="overflow-x-auto scrollbar-thin">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-green-50">
+                <table className="min-w-full divide-y divide-gray-200 table-fixed sm:table-auto">
+                    <thead className="bg-green-50 sticky top-0 z-10">
                     <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Tienda</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Marca</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Descripción</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-green-800 uppercase tracking-wider">Stock</th>
+                        <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-16 sm:w-auto">Tienda</th>
+                        <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-14 sm:w-auto">Marca</th>
+                        <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-auto">Descripción</th>
+                        <th className="px-1 py-1 sm:px-6 sm:py-3 text-right text-[10px] sm:text-xs font-medium text-green-800 uppercase tracking-wider w-12 sm:w-24">Stock</th>
                     </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {overstockData.map((row, idx) => (
                             <tr key={idx} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{row['DESCRIPCION LOCAL2']}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{row.MARCA}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 min-w-[200px]">{row.DESCRIPCION}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-green-700">
+                            <td className="px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-900 font-medium align-top truncate">
+                                {row['DESCRIPCION LOCAL2']}
+                            </td>
+                            <td className="px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-600 align-top truncate">
+                                {row.MARCA}
+                            </td>
+                            <td className="px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-500 align-top">
+                                <div className="line-clamp-2 leading-tight sm:line-clamp-none">
+                                    {row.DESCRIPCION}
+                                </div>
+                            </td>
+                            <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-[10px] sm:text-sm text-right font-bold text-green-700 align-top">
                                 {row.STOCK}
                             </td>
                             </tr>

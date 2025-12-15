@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search, X } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 
 interface SearchableSelectProps {
   options: string[];
@@ -37,17 +37,17 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
   return (
     <div className="relative w-full" ref={wrapperRef}>
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+      {label && <label className="block text-xs font-bold text-gray-700 mb-0.5">{label}</label>}
       
       <div 
-        className="w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm flex items-center justify-between"
+        className="w-full bg-white border border-gray-300 rounded-md shadow-sm pl-2 pr-8 py-1.5 text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-xs sm:text-sm flex items-center justify-between h-8 sm:h-9"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className={`block truncate ${!value ? 'text-gray-400' : 'text-gray-900'}`}>
           {value || placeholder}
         </span>
         <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-          <ChevronDown className="h-4 w-4 text-gray-400" />
+          <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
         </span>
       </div>
 
@@ -56,11 +56,11 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           <div className="sticky top-0 bg-white p-2 border-b border-gray-100">
             <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
+                    <Search className="h-3 w-3 text-gray-400" />
                 </div>
                 <input
                     type="text"
-                    className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-300 focus:ring-0 sm:text-sm"
+                    className="block w-full pl-8 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-300 focus:ring-0 text-xs"
                     placeholder="Buscar..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -70,7 +70,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           </div>
 
           <div 
-             className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-50 text-gray-500"
+             className="cursor-pointer select-none relative py-1.5 pl-3 pr-9 hover:bg-indigo-50 text-gray-500 text-xs"
              onClick={() => {
                onChange("");
                setIsOpen(false);
@@ -81,14 +81,14 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           </div>
 
           {filteredOptions.length === 0 ? (
-            <div className="cursor-default select-none relative py-2 pl-3 pr-9 text-gray-700">
+            <div className="cursor-default select-none relative py-2 pl-3 pr-9 text-gray-700 text-xs">
               No se encontraron resultados
             </div>
           ) : (
             filteredOptions.map((opt, idx) => (
               <div
                 key={`${opt}-${idx}`}
-                className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-50 ${value === opt ? 'bg-indigo-50 text-indigo-900 font-semibold' : 'text-gray-900'}`}
+                className={`cursor-pointer select-none relative py-1.5 pl-3 pr-9 hover:bg-indigo-50 text-xs ${value === opt ? 'bg-indigo-50 text-indigo-900 font-semibold' : 'text-gray-900'}`}
                 onClick={() => {
                   onChange(opt);
                   setIsOpen(false);

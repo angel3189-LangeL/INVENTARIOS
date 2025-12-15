@@ -109,50 +109,49 @@ export const InventoryPage: React.FC = () => {
   const maxSales = 50;
 
   return (
-    <div className="space-y-4">
-      {/* Filters Sticky Section */}
-      <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200 sticky top-14 sm:top-16 z-30">
-        <div className="flex justify-between items-center mb-3">
-             <h2 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
-                <Search className="w-5 h-5 mr-2 text-blue-600"/>
+    <div className="space-y-2">
+      {/* Filters Sticky Section - COMPACTADO */}
+      <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-200 sticky top-14 sm:top-16 z-40">
+        <div className="flex justify-between items-center mb-1.5">
+             <h2 className="text-sm sm:text-base font-bold text-gray-800 flex items-center">
+                <Search className="w-4 h-4 mr-1 text-blue-600"/>
                 Filtros
              </h2>
              <button 
                 onClick={handleClearFilters}
-                className="text-xs sm:text-sm text-red-600 hover:text-red-800 flex items-center font-medium transition-colors border border-red-100 px-2 py-1 rounded bg-red-50"
-                title="Limpiar todos los filtros"
+                className="text-[10px] sm:text-xs text-red-600 hover:text-red-800 flex items-center font-medium transition-colors border border-red-100 px-2 py-0.5 rounded bg-red-50"
              >
-                 <FilterX className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                 <FilterX className="w-3 h-3 mr-1" />
                  Limpiar
              </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           
-          {/* 1. Store Filter (Searchable) - Moved First */}
+          {/* 1. Store Filter */}
           <div className="w-full">
             <SearchableSelect
                 label="Tienda"
                 options={uniqueStores}
                 value={selectedStore}
                 onChange={setSelectedStore}
-                placeholder="Todas las tiendas..."
+                placeholder="Todas..."
             />
           </div>
 
-          {/* 2. Brand Filter (Standard Select) - Moved Second */}
+          {/* 2. Brand Filter */}
           <div className="w-full">
-             <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+             <label className="block text-xs font-bold text-gray-700 mb-0.5">Marca</label>
              <div className="relative">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                     <Tag className="h-4 w-4 text-gray-400" />
+                 <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                     <Tag className="h-3 w-3 text-gray-400" />
                  </div>
                  <select
-                    className="block w-full pl-10 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-white text-gray-900"
+                    className="block w-full pl-8 pr-6 py-1.5 text-xs border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-white text-gray-900 h-8 sm:h-9"
                     value={selectedBrand}
                     onChange={(e) => setSelectedBrand(e.target.value)}
                  >
-                    <option value="">Todas las marcas...</option>
+                    <option value="">Todas...</option>
                     {uniqueBrands.map((brand) => (
                         <option key={brand} value={brand}>
                             {brand}
@@ -162,16 +161,16 @@ export const InventoryPage: React.FC = () => {
              </div>
           </div>
 
-          {/* 3. General Search (SKU / Description) - Moved Last */}
+          {/* 3. General Search */}
           <div className="w-full relative">
-             <label className="block text-sm font-medium text-gray-700 mb-1">Buscar Producto</label>
+             <label className="block text-xs font-bold text-gray-700 mb-0.5">Buscar</label>
              <div className="relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                    <Search className="h-3 w-3 text-gray-400" />
                 </div>
                 <input
                     type="text"
-                    className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 text-sm border-gray-300 rounded-md py-2 border bg-white text-gray-900"
+                    className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-8 text-xs border-gray-300 rounded-md py-1.5 border bg-white text-gray-900 h-8 sm:h-9"
                     placeholder="SKU o Descripción..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -184,96 +183,66 @@ export const InventoryPage: React.FC = () => {
 
       {/* No Results State */}
       {processedData.length === 0 && (
-          <div className="bg-white p-8 rounded-lg shadow border border-gray-200 text-center">
+          <div className="bg-white p-6 rounded-lg shadow border border-gray-200 text-center">
                 <div className="flex flex-col items-center justify-center text-gray-500">
-                    <AlertCircle className="h-10 w-10 text-gray-300 mb-2" />
-                    <p>No hay datos que coincidan con los filtros seleccionados.</p>
+                    <AlertCircle className="h-8 w-8 text-gray-300 mb-1" />
+                    <p className="text-sm">No hay datos.</p>
                 </div>
           </div>
       )}
 
-      {/* MOBILE CARD VIEW (Visible only on small screens) */}
-      <div className="block sm:hidden space-y-3">
-          {processedData.map((row, idx) => (
-              <div key={`${row.COD}-${idx}`} className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500 relative">
-                  <div className="flex justify-between items-start mb-2">
-                      <span className="font-bold text-gray-800 text-sm">{row.MARCA}</span>
-                      <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                          {row.COD}
-                      </span>
-                  </div>
-                  <div className="text-sm text-gray-700 mb-3 leading-snug">
-                      {row.DESCRIPCION}
-                  </div>
-                  <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                      <div className="flex flex-col items-center">
-                          <span className="text-xs text-gray-400 uppercase font-semibold">Stock</span>
-                          <span className={`${getColorForValue(row.STOCK, 0, maxStock, 'stock')} mt-1`}>
-                              {row.STOCK}
-                          </span>
-                      </div>
-                      <div className="h-8 w-px bg-gray-200"></div>
-                      <div className="flex flex-col items-center">
-                          <span className="text-xs text-gray-400 uppercase font-semibold">Ventas</span>
-                          <span className={`${getColorForValue(row.VTA, 0, maxSales, 'sales')} mt-1`}>
-                              {row.VTA}
-                          </span>
-                      </div>
-                  </div>
-              </div>
-          ))}
-      </div>
-
-      {/* DESKTOP TABLE VIEW (Hidden on small screens) */}
-      <div className="hidden sm:block bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+      {/* TABLE VIEW (Compact Mobile / Standard Desktop) */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
         <div className="overflow-x-auto scrollbar-thin">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-slate-50">
+          <table className="min-w-full divide-y divide-gray-200 table-fixed sm:table-auto">
+            <thead className="bg-slate-50 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Marca</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">SKU</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Descripción</th>
+                <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider w-16 sm:w-auto">Marca</th>
+                <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider w-14 sm:w-auto">SKU</th>
+                <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider w-auto">Descripción</th>
                 <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group text-center"
+                  className="px-1 py-1 sm:px-6 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group w-12 sm:w-28"
                   onClick={() => handleSort('STOCK')}
                 >
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center flex-col sm:flex-row">
                     Stock
-                    <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400 group-hover:text-slate-600" />
+                    <ArrowUpDown className="hidden sm:block ml-1 h-3 w-3 text-slate-400 group-hover:text-slate-600" />
                   </div>
                 </th>
                 <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group text-center"
+                  className="px-1 py-1 sm:px-6 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group w-12 sm:w-28"
                   onClick={() => handleSort('VTA')}
                 >
-                  <div className="flex items-center justify-center">
-                    VTA 30 DÍAS
-                    <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400 group-hover:text-slate-600" />
+                  <div className="flex items-center justify-center flex-col sm:flex-row">
+                    Vta
+                    <span className="hidden sm:inline ml-1">30D</span>
+                    <ArrowUpDown className="hidden sm:block ml-1 h-3 w-3 text-slate-400 group-hover:text-slate-600" />
                   </div>
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
                 {processedData.map((row, idx) => {
-                  // Only show Brand if it's the first row or different from the previous row
                   const showBrand = idx === 0 || row.MARCA !== processedData[idx - 1].MARCA;
                   return (
                     <tr key={`${row.COD}-${idx}`} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-700">
+                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-normal sm:whitespace-nowrap text-[10px] sm:text-sm font-bold text-slate-700 align-top">
                         {showBrand ? row.MARCA : ''}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-[10px] sm:text-sm text-gray-500 font-mono align-top">
                         {row.COD}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 min-w-[200px] max-w-lg truncate" title={row.DESCRIPCION}>
-                        {row.DESCRIPCION}
+                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-900 align-top">
+                        <div className="line-clamp-2 leading-tight sm:line-clamp-none">
+                            {row.DESCRIPCION}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-center align-top">
                          <span className={getColorForValue(row.STOCK, 0, maxStock, 'stock')}>
                             {row.STOCK}
                          </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-center align-top">
                          <span className={getColorForValue(row.VTA, 0, maxSales, 'sales')}>
                             {row.VTA}
                          </span>
@@ -287,8 +256,8 @@ export const InventoryPage: React.FC = () => {
       </div>
       
       {/* Footer Info */}
-      <div className="bg-gray-50 p-3 rounded text-xs text-gray-500 flex justify-between items-center border border-gray-200">
-            <span>Mostrando {processedData.length} registros</span>
+      <div className="bg-gray-50 p-2 rounded text-[10px] sm:text-xs text-gray-500 flex justify-between items-center border border-gray-200">
+            <span>{processedData.length} registros</span>
             {selectedStore && <span className="font-semibold text-blue-600 truncate max-w-[150px]">{selectedStore}</span>}
       </div>
     </div>
