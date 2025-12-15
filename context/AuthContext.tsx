@@ -22,8 +22,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const SESSION_KEY = 'app_session_user';
 const LOCAL_USERS_CACHE = 'app_users_cache';
 
-// URL FIJA PARA USUARIOS - GitHub Raw directo (Corregido)
-const DEFAULT_USERS_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/main/users.json";
+// URL FIJA PARA USUARIOS - Actualizada con refs/heads/main explícitamente
+const DEFAULT_USERS_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/refs/heads/main/users.json";
 
 const DEFAULT_USERS: User[] = [
     { username: 'ADMIN', pass: '123456', role: 'ADMINISTRADOR' }
@@ -41,10 +41,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (finalUrl.includes('github.com') && finalUrl.includes('/blob/')) {
           finalUrl = finalUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
       }
-      // Corregir refs/heads que a veces se copian mal
-      if (finalUrl.includes('raw.githubusercontent.com') && finalUrl.includes('/refs/heads/')) {
-          finalUrl = finalUrl.replace('/refs/heads/', '/');
-      }
+      // NOTA: Eliminada la limpieza de /refs/heads/ ya que la URL proporcionada lo requiere.
+      
       return finalUrl;
   };
 
@@ -83,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(JSON.parse(savedSession));
     }
     
-    // Cargar usuarios
+    // Cargar usuarios al inicio
     fetchUsers();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -91,13 +89,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (username: string, pass: string, remember: boolean = false) => {
     setIsLoadingAuth(true);
     
-    // Intentar refrescar la lista antes del login para tener los últimos datos
-    await fetchUsers(); 
+    // IMPORTANTE: No hacemos fetchUsers() aquí.
+    // Si lo hacemos, sobrescribimos los usuarios creados localmente (pero no subidos a GitHub) con la versión vieja de GitHub.
+    // Confiamos en la lista en memoria (usersList) o el caché local.
+
+    // Obtenemos la lista más actualizada disponible localmente
+    const cached = localStorage.getItem(LOCAL_USERS_CACHE);
+    const currentList = cached ? JSON.parse(cached) : usersList;
     
-    // Verificamos contra la lista en memoria
-    const found = usersList.find((u: any) => u.username === username && u.pass === pass);
+    // Verificamos credenciales
+    const found = currentList.find((u: any) => u.username === username && u.pass === pass);
     
-    // Backdoor de emergencia por si la lista remota falla o se borra
+    // Backdoor de emergencia por si la lista remota falla o se borra y no hay caché
     const isEmergencyAdmin = username === 'ADMIN' && pass === '123456';
 
     if (found || isEmergencyAdmin) {
@@ -157,7 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return { 
             success: true, 
-            msg: 'Usuario añadido al sistema local. Se ha descargado "users.json". Por favor, SÚBELO a GitHub para aplicar los cambios.' 
+            msg: 'Usuario añadido LOCALMENTE. Se descargó "users.json". ¡Súbelo a GitHub para que funcione en otros PC!' 
         };
 
     } catch (e) {
