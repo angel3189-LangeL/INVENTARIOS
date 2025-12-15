@@ -47,14 +47,14 @@ const CustomizedYAxisTick = (props: any) => {
             dy={displayLines.length === 1 ? 4 : (index === 0 ? -4 : 8)} 
             textAnchor="end" 
             fill="#4b5563" 
-            fontSize={10}
+            fontSize={9}
             fontWeight={500}
         >
           {line.trim()}
         </text>
       ))}
       {/* Línea marca de agua separadora */}
-      <line x1={-150} y1={20} x2={0} y2={20} stroke="#cbd5e1" strokeWidth={1} strokeOpacity={0.5} />
+      <line x1={-150} y1={24} x2={0} y2={24} stroke="#cbd5e1" strokeWidth={1} strokeOpacity={0.5} />
     </g>
   );
 };
@@ -160,7 +160,8 @@ export const SalesRankingPage: React.FC = () => {
         {/* Chart 1: Tiendas (BLUE SCALE) */}
         <div className="bg-white p-3 sm:p-4 rounded-lg shadow border border-gray-200">
           <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-2 text-center">Top 15 Tiendas (Venta 30 Días)</h3>
-          <div className="h-[400px] sm:h-[600px] w-full">
+          {/* Aumentada altura móvil a 750px para dar espacio a etiquetas */}
+          <div className="h-[750px] sm:h-[600px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topStoresData} layout="vertical" margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
@@ -169,7 +170,7 @@ export const SalesRankingPage: React.FC = () => {
                     type="category" 
                     dataKey="name" 
                     width={130} 
-                    tick={{fontSize: 10, fill: '#4b5563'}} 
+                    tick={{fontSize: 9, fill: '#4b5563'}} 
                     interval={0} 
                 />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={18}>
@@ -193,7 +194,8 @@ export const SalesRankingPage: React.FC = () => {
         {/* Chart 2: Productos (GREEN SCALE) */}
         <div className="bg-white p-3 sm:p-4 rounded-lg shadow border border-gray-200">
           <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-2 text-center">Top 15 Productos (Venta 30 Días)</h3>
-          <div className="h-[400px] sm:h-[600px] w-full">
+          {/* Aumentada altura móvil a 750px para dar espacio a etiquetas */}
+          <div className="h-[750px] sm:h-[600px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topProductsData} layout="vertical" margin={{ top: 5, right: 30, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
