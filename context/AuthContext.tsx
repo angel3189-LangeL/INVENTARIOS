@@ -8,7 +8,7 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, pass: string) => boolean;
+  login: (username: string, pass: string, remember?: boolean) => boolean;
   logout: () => void;
   createUser: (username: string, pass: string, role: User['role']) => boolean;
   getUsers: () => any[]; // For admin list
@@ -27,25 +27,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const existingUsers = localStorage.getItem(USERS_KEY);
     if (!existingUsers) {
       const initialUsers = [
-        { username: 'ADMINISTRADOR', pass: '123456', role: 'ADMINISTRADOR' }
+        { username: 'ADMIN', pass: '123456', role: 'ADMINISTRADOR' }
       ];
       localStorage.setItem(USERS_KEY, JSON.stringify(initialUsers));
     }
 
-    // Restaurar sesión
-    const savedSession = localStorage.getItem(SESSION_KEY);
+    // Restaurar sesión (Buscar en LocalStorage primero, luego en SessionStorage)
+    const savedSession = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
     if (savedSession) {
       setUser(JSON.parse(savedSession));
     }
   }, []);
 
-  const login = (username: string, pass: string) => {
+  const login = (username: string, pass: string, remember: boolean = false) => {
     const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
     const found = users.find((u: any) => u.username === username && u.pass === pass);
     if (found) {
       const userObj = { username: found.username, role: found.role };
       setUser(userObj as User);
-      localStorage.setItem(SESSION_KEY, JSON.stringify(userObj));
+      
+      // Guardar sesión según la preferencia de "Confiar en este dispositivo"
+      if (remember) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(userObj));
+      } else {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(userObj));
+      }
       return true;
     }
     return false;
@@ -53,7 +59,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    // Limpiar ambos almacenamientos por seguridad
     localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
   };
 
   const createUser = (username: string, pass: string, role: User['role']) => {

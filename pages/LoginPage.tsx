@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User } from 'lucide-react';
+import { Lock, User, CheckSquare } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(username, password)) {
+    if (login(username, password, remember)) {
       navigate('/inventory');
     } else {
       setError('Credenciales inválidas');
@@ -38,8 +39,8 @@ export const LoginPage: React.FC = () => {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value.toUpperCase())}
-                    className="pl-10 block w-full border border-gray-300 rounded-md py-2 text-sm focus:ring-slate-500 focus:border-slate-500 uppercase"
-                    placeholder="ADMINISTRADOR"
+                    className="pl-10 block w-full border border-gray-300 rounded-md py-2 text-sm focus:ring-slate-500 focus:border-slate-500 uppercase bg-white text-gray-900"
+                    placeholder="USUARIO"
                     required
                 />
             </div>
@@ -54,11 +55,25 @@ export const LoginPage: React.FC = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 block w-full border border-gray-300 rounded-md py-2 text-sm focus:ring-slate-500 focus:border-slate-500"
+                    className="pl-10 block w-full border border-gray-300 rounded-md py-2 text-sm focus:ring-slate-500 focus:border-slate-500 bg-white text-gray-900"
                     placeholder="••••••"
                     required
                 />
             </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              name="remember-me"
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="h-4 w-4 text-slate-900 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer select-none">
+              Confiar en este dispositivo
+            </label>
           </div>
 
           {error && <div className="text-red-500 text-xs text-center">{error}</div>}
