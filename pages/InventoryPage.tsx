@@ -194,8 +194,8 @@ export const InventoryPage: React.FC = () => {
       {/* TABLE VIEW (Compact Mobile / Standard Desktop) */}
       <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
         <div className="overflow-x-auto scrollbar-thin">
-          <table className="min-w-full divide-y divide-gray-200 table-fixed sm:table-auto">
-            <thead className="bg-slate-50 sticky top-0 z-10">
+          <table className="min-w-full table-fixed sm:table-auto">
+            <thead className="bg-slate-50 sticky top-0 z-10 border-b border-gray-200">
               <tr>
                 <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider w-16 sm:w-auto">Marca</th>
                 <th className="px-1 py-1 sm:px-6 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider w-14 sm:w-auto">SKU</th>
@@ -221,28 +221,40 @@ export const InventoryPage: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white">
                 {processedData.map((row, idx) => {
                   const showBrand = idx === 0 || row.MARCA !== processedData[idx - 1].MARCA;
+                  
+                  // Brand separator: Full line (Gray 300)
+                  // Item separator: Partial line (Gray 100)
+                  
+                  const brandBorder = showBrand 
+                    ? "border-t border-gray-300" 
+                    : "border-none";
+                    
+                  const itemBorder = showBrand 
+                    ? "border-t border-gray-300"
+                    : "border-t border-gray-100";
+
                   return (
                     <tr key={`${row.COD}-${idx}`} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-normal sm:whitespace-nowrap text-[10px] sm:text-sm font-bold text-slate-700 align-top">
+                      <td className={`px-1 py-1.5 sm:px-6 sm:py-4 whitespace-normal sm:whitespace-nowrap text-[10px] sm:text-sm font-bold text-slate-700 align-top ${brandBorder}`}>
                         {showBrand ? row.MARCA : ''}
                       </td>
-                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-[10px] sm:text-sm text-gray-500 font-mono align-top">
+                      <td className={`px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-[10px] sm:text-sm text-gray-500 font-mono align-top ${itemBorder}`}>
                         {row.COD}
                       </td>
-                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-900 align-top">
+                      <td className={`px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-900 align-top ${itemBorder}`}>
                         <div className="line-clamp-2 leading-tight sm:line-clamp-none">
                             {row.DESCRIPCION}
                         </div>
                       </td>
-                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-center align-top">
+                      <td className={`px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-center align-top ${itemBorder}`}>
                          <span className={getColorForValue(row.STOCK, 0, maxStock, 'stock')}>
                             {row.STOCK}
                          </span>
                       </td>
-                      <td className="px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-center align-top">
+                      <td className={`px-1 py-1.5 sm:px-6 sm:py-4 whitespace-nowrap text-center align-top ${itemBorder}`}>
                          <span className={getColorForValue(row.VTA, 0, maxSales, 'sales')}>
                             {row.VTA}
                          </span>
