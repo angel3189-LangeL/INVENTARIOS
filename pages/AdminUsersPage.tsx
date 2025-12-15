@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { UserPlus, Shield, Database, Save, RefreshCw, Github, Search, Wifi, Loader } from 'lucide-react';
+import { UserPlus, Shield, Github, Search, Wifi, Loader, FileJson, Download } from 'lucide-react';
 
 export const AdminUsersPage: React.FC = () => {
-  const { getUsers, createUser } = useAuth();
-  const { setCustomUrl, getCustomUrl, isLoading, checkForUpdates, currentSha, isUpdateAvailable, lastCheckTime } = useData();
+  const { getUsers, createUser, usersUrl } = useAuth();
+  const { checkForUpdates, currentSha, lastCheckTime, getCustomUrl } = useData();
   
   // User Management State
   const [newUser, setNewUser] = useState('');
@@ -14,25 +14,21 @@ export const AdminUsersPage: React.FC = () => {
   const [msg, setMsg] = useState('');
   const [isCreatingUser, setIsCreatingUser] = useState(false);
 
-  // Data Connection State
-  const [cloudUrl, setCloudUrl] = useState('');
-  const [urlMsg, setUrlMsg] = useState('');
-
   // Check update status state
   const [isChecking, setIsChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<string>('');
 
   const users = getUsers();
-
-  useEffect(() => {
-    setCloudUrl(getCustomUrl());
-  }, []);
+  const currentCsvUrl = getCustomUrl();
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsCreatingUser(true);
     setMsg('');
     
+    // Simulate async slightly for UX
+    await new Promise(r => setTimeout(r, 500));
+
     const result = await createUser(newUser.toUpperCase(), newPass, newRole);
     
     if (result.success) {
@@ -43,12 +39,6 @@ export const AdminUsersPage: React.FC = () => {
       setMsg(`Error: ${result.msg}`);
     }
     setIsCreatingUser(false);
-  };
-
-  const handleSaveUrl = () => {
-    setCustomUrl(cloudUrl);
-    setUrlMsg('URL actualizada. La aplicación intentará cargar estos datos.');
-    setTimeout(() => setUrlMsg(''), 3000);
   };
 
   const handleCheckUpdates = async () => {
@@ -63,7 +53,6 @@ export const AdminUsersPage: React.FC = () => {
           setCheckResult('El archivo está actualizado (No hay cambios en el SERVIDOR).');
       }
       
-      // Clear msg after 5s
       setTimeout(() => setCheckResult(''), 5000);
   };
 
@@ -78,62 +67,60 @@ export const AdminUsersPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          
-         {/* Cloud Connection Config */}
+         {/* Git Status / Info Section */}
          <div className="bg-white p-6 rounded-lg shadow border border-gray-200 lg:col-span-2">
             <h3 className="text-base font-bold mb-4 text-gray-800 flex items-center border-b pb-2">
-                <Database className="w-5 h-5 mr-2 text-blue-600"/>
-                Conexión de Datos (Inventario)
+                <Github className="w-5 h-5 mr-2 text-slate-700"/>
+                Estado de Sincronización (GitHub)
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
-                Configura aquí la URL permanente de tu archivo <code>INVENTARIO.csv</code> alojado en <strong>el SERVIDOR (Raw)</strong>. 
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <input 
-                    type="url" 
-                    value={cloudUrl}
-                    onChange={(e) => setCloudUrl(e.target.value)}
-                    placeholder="https://raw.githubusercontent.com/..."
-                    className="flex-1 block w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500 font-mono"
-                />
-                <button 
-                    onClick={handleSaveUrl}
-                    disabled={isLoading}
-                    className="flex items-center justify-center px-4 py-2 bg-slate-800 text-white rounded-md hover:bg-slate-900 text-sm font-medium transition-colors"
-                >
-                    {isLoading ? <RefreshCw className="w-4 h-4 animate-spin mr-2"/> : <Save className="w-4 h-4 mr-2" />}
-                    Guardar Configuración
-                </button>
-            </div>
-            {urlMsg && <p className="text-xs text-green-600 mt-2 font-medium mb-4">{urlMsg}</p>}
             
-            {/* Version Control Status Section */}
-            <div className="bg-slate-50 p-4 rounded-md border border-slate-200">
-                <h4 className="text-sm font-bold text-slate-700 mb-2 flex items-center justify-between">
-                    <div className="flex items-center">
-                        <Github className="w-4 h-4 mr-2"/>
-                        Sincronización Inteligente
-                    </div>
-                    <span className="flex items-center text-xs font-normal text-green-600 bg-green-100 px-2 py-0.5 rounded-full border border-green-200">
-                        <Wifi className="w-3 h-3 mr-1" />
-                        Activo
-                    </span>
-                </h4>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="text-xs text-gray-600 space-y-1">
-                        <p><strong>Versión Actual (SHA):</strong> <span className="font-mono bg-white px-1 border rounded">{currentSha ? currentSha.substring(0, 8) : 'Desconocido / Local'}</span></p>
-                        <p><strong>Última verificación:</strong> {lastCheckTime ? lastCheckTime.toLocaleTimeString() : 'Recién cargado'}</p>
-                    </div>
-                    <div className="flex flex-col items-end">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Fuentes de Datos (Automáticas)</h4>
+                     <ul className="text-sm space-y-3">
+                         <li className="flex flex-col">
+                             <span className="font-medium text-gray-700">Inventario (CSV)</span>
+                             <a href={currentCsvUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate text-xs font-mono bg-blue-50 p-1 rounded mt-1">
+                                 {currentCsvUrl}
+                             </a>
+                         </li>
+                         <li className="flex flex-col">
+                             <span className="font-medium text-gray-700">Usuarios (JSON)</span>
+                             <a href={usersUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate text-xs font-mono bg-blue-50 p-1 rounded mt-1">
+                                 {usersUrl}
+                             </a>
+                         </li>
+                     </ul>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-md border border-slate-200 flex flex-col justify-between">
+                     <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-bold text-slate-700">Versión Actual</span>
+                             <span className="flex items-center text-xs font-normal text-green-600 bg-green-100 px-2 py-0.5 rounded-full border border-green-200">
+                                <Wifi className="w-3 h-3 mr-1" />
+                                Conectado
+                            </span>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-1">
+                            <strong>SHA:</strong> <span className="font-mono bg-white px-1 border rounded">{currentSha ? currentSha.substring(0, 8) : 'Desconocido'}</span>
+                        </p>
+                        <p className="text-xs text-gray-600">
+                            <strong>Última verificación:</strong> {lastCheckTime ? lastCheckTime.toLocaleTimeString() : 'Recién cargado'}
+                        </p>
+                     </div>
+                     
+                     <div className="mt-4 flex flex-col items-end">
                         <button 
                             onClick={handleCheckUpdates}
-                            disabled={isChecking || !currentSha}
-                            className={`flex items-center text-xs px-3 py-2 rounded border transition-colors ${isChecking ? 'bg-gray-200 text-gray-500' : 'bg-white hover:bg-blue-50 text-blue-700 border-blue-200'}`}
+                            disabled={isChecking}
+                            className={`w-full sm:w-auto flex items-center justify-center text-xs px-3 py-2 rounded border transition-colors ${isChecking ? 'bg-gray-200 text-gray-500' : 'bg-white hover:bg-blue-50 text-blue-700 border-blue-200'}`}
                         >
-                            {isChecking ? <RefreshCw className="w-3 h-3 animate-spin mr-2"/> : <Search className="w-3 h-3 mr-2"/>}
-                            {isChecking ? 'Verificando...' : 'Buscar actualización ahora'}
+                            {isChecking ? <Loader className="w-3 h-3 animate-spin mr-2"/> : <Search className="w-3 h-3 mr-2"/>}
+                            {isChecking ? 'Verificando...' : 'Buscar actualizaciones'}
                         </button>
                         {checkResult && (
-                            <span className={`text-xs mt-1 font-medium ${checkResult.includes('encontrada') ? 'text-green-600' : 'text-slate-500'}`}>
+                            <span className={`text-xs mt-2 font-medium text-center sm:text-right w-full block ${checkResult.includes('encontrada') ? 'text-green-600' : 'text-slate-500'}`}>
                                 {checkResult}
                             </span>
                         )}
@@ -144,10 +131,18 @@ export const AdminUsersPage: React.FC = () => {
 
          {/* Create User Form */}
          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-            <h3 className="text-base font-semibold mb-4 text-gray-700">Crear Nuevo Usuario (Google Sheets)</h3>
+            <h3 className="text-base font-semibold mb-4 text-gray-700 flex items-center">
+                <FileJson className="w-5 h-5 mr-2 text-yellow-600" />
+                Gestión de Usuarios
+            </h3>
+            <p className="text-xs text-gray-500 mb-4 bg-yellow-50 p-2 rounded border border-yellow-100 leading-relaxed">
+                <strong>Instrucciones:</strong> Al crear un usuario aquí, se descargará un archivo <code>users.json</code>. 
+                <br/><br/>
+                Para aplicar los cambios a todos los usuarios, debes <strong>subir manualmente</strong> este archivo a la carpeta del repositorio en GitHub.
+            </p>
             <form onSubmit={handleCreate} className="space-y-3">
                 <div>
-                    <label className="block text-xs font-medium text-gray-700">Usuario</label>
+                    <label className="block text-xs font-medium text-gray-700">Nuevo Usuario</label>
                     <input 
                         type="text" 
                         value={newUser} 
@@ -155,6 +150,7 @@ export const AdminUsersPage: React.FC = () => {
                         className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 text-sm bg-white text-gray-900 focus:ring-slate-500 focus:border-slate-500" 
                         required 
                         disabled={isCreatingUser}
+                        placeholder="NOMBRE"
                     />
                 </div>
                 <div>
@@ -166,6 +162,7 @@ export const AdminUsersPage: React.FC = () => {
                         className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 text-sm bg-white text-gray-900 focus:ring-slate-500 focus:border-slate-500" 
                         required 
                         disabled={isCreatingUser}
+                        placeholder="••••••"
                     />
                 </div>
                 <div>
@@ -183,35 +180,42 @@ export const AdminUsersPage: React.FC = () => {
                 <button 
                     type="submit" 
                     disabled={isCreatingUser}
-                    className="w-full flex items-center justify-center bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-sm transition-colors disabled:opacity-70"
+                    className="w-full flex items-center justify-center bg-yellow-600 text-white py-2 rounded-md hover:bg-yellow-700 text-sm transition-colors disabled:opacity-70 mt-4"
                 >
                     {isCreatingUser ? (
-                         <><Loader className="w-4 h-4 mr-2 animate-spin" /> Guardando...</>
+                         <><Loader className="w-4 h-4 mr-2 animate-spin" /> Generando archivo...</>
                     ) : (
-                         <><UserPlus className="w-4 h-4 mr-2" /> Crear Usuario</>
+                         <><Download className="w-4 h-4 mr-2" /> Crear y Descargar JSON</>
                     )}
                 </button>
-                {msg && <p className={`text-xs text-center mt-2 ${msg.includes('Error') ? 'text-red-500' : 'text-blue-600'}`}>{msg}</p>}
+                {msg && <p className={`text-xs text-center mt-2 ${msg.includes('Error') ? 'text-red-500' : 'text-green-600 font-semibold'}`}>{msg}</p>}
             </form>
          </div>
 
          {/* List Users */}
          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
             <h3 className="text-base font-semibold mb-4 text-gray-700 flex justify-between items-center">
-                <span>Usuarios Existentes</span>
-                <span className="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-1 rounded">Desde API</span>
+                <span>Usuarios Actuales</span>
+                <span className="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                   Lectura desde GitHub
+                </span>
             </h3>
             {users.length === 0 ? (
                 <div className="text-center py-8 text-slate-400 text-sm">
                     <Loader className="w-6 h-6 mx-auto mb-2 animate-spin"/>
-                    Cargando usuarios...
+                    Cargando lista...
                 </div>
             ) : (
-                <ul className="divide-y divide-gray-100 max-h-[300px] overflow-y-auto scrollbar-thin">
+                <ul className="divide-y divide-gray-100 max-h-[350px] overflow-y-auto scrollbar-thin">
                     {users.map((u, i) => (
-                        <li key={i} className="py-2 flex justify-between items-center text-sm">
-                            <span className="font-medium text-gray-800">{u.username}</span>
-                            <span className={`px-2 py-1 rounded-full text-xs ${u.role === 'ADMINISTRADOR' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
+                        <li key={i} className="py-3 flex justify-between items-center text-sm">
+                            <div className="flex items-center">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-xs font-bold ${u.role === 'ADMINISTRADOR' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                                    {u.username.charAt(0)}
+                                </div>
+                                <span className="font-medium text-gray-800">{u.username}</span>
+                            </div>
+                            <span className={`px-2 py-1 rounded text-[10px] font-bold tracking-wide uppercase ${u.role === 'ADMINISTRADOR' ? 'bg-purple-50 text-purple-700 border border-purple-100' : 'bg-gray-50 text-gray-600 border border-gray-100'}`}>
                                 {u.role}
                             </span>
                         </li>
