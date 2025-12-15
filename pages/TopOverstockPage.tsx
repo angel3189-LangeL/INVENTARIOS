@@ -79,8 +79,10 @@ export const TopOverstockPage: React.FC = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {overstockData.map((row, idx) => (
                             <tr key={idx} className="hover:bg-gray-50">
-                            <td className="px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-900 font-medium align-top truncate">
-                                {row['DESCRIPCION LOCAL2']}
+                            <td className="px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-900 font-medium align-top">
+                                <div className="line-clamp-2 leading-tight">
+                                    {row['DESCRIPCION LOCAL2']}
+                                </div>
                             </td>
                             <td className="px-1 py-1.5 sm:px-6 sm:py-4 text-[10px] sm:text-sm text-gray-600 align-top truncate">
                                 {row.MARCA}
