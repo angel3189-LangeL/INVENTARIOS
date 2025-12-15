@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, LogOut, Users, Loader } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Users, Loader, RefreshCw, AlertCircle } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { DataUploader } from './DataUploader';
 
 export const Layout: React.FC = () => {
-  const { data, isLoading } = useData();
+  const { data, isLoading, isUpdateAvailable, refreshData } = useData();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,7 +30,6 @@ export const Layout: React.FC = () => {
   }
 
   // If no data and not loading (URL failed or empty)
-  // Render the Uploader so user can manually fix it
   if (data.length === 0) {
       return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -67,6 +66,25 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
+      {/* Update Notification Banner */}
+      {isUpdateAvailable && (
+        <div className="bg-blue-600 text-white px-4 py-3 shadow-md relative z-50">
+           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div className="flex items-center text-sm font-medium">
+                    <AlertCircle className="w-5 h-5 mr-2 animate-pulse" />
+                    <span>Hay una nueva versión de los datos disponible en GitHub.</span>
+                </div>
+                <button 
+                    onClick={() => refreshData()}
+                    className="bg-white text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide hover:bg-blue-50 transition-colors flex items-center shadow-sm"
+                >
+                    <RefreshCw className="w-3 h-3 mr-1.5" />
+                    Actualizar Ahora
+                </button>
+           </div>
+        </div>
+      )}
+
       {/* Top Header */}
       <header className="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

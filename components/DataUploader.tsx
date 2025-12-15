@@ -1,14 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Upload, Link as LinkIcon, DownloadCloud, Github, RefreshCw } from 'lucide-react';
+import { Upload, Link as LinkIcon, DownloadCloud, Github, RefreshCw, Radio } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export const DataUploader: React.FC = () => {
-  const { loadData, loadDataFromUrl, isLoading, data, setCustomUrl, getCustomUrl } = useData();
+  const { loadData, loadDataFromUrl, isLoading, data, setCustomUrl, getCustomUrl, checkForUpdates } = useData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const [url, setUrl] = useState('');
-  const [searchParams] = useSearchParams();
+  const [isChecking, setIsChecking] = useState(false);
 
   // Load current URL
   useEffect(() => {
@@ -40,6 +40,13 @@ export const DataUploader: React.FC = () => {
     const fixedUrl = processUrl(url);
     if (fixedUrl !== url) setUrl(fixedUrl);
     setCustomUrl(fixedUrl);
+  };
+
+  const handleManualCheck = async () => {
+      setIsChecking(true);
+      await checkForUpdates();
+      // Delay slightly to show interaction
+      setTimeout(() => setIsChecking(false), 800);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,23 +84,34 @@ export const DataUploader: React.FC = () => {
                         readOnly={true} // Make read-only to avoid confusion, editable in Admin only
                     />
                 </div>
-                <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50 transition-all"
-                >
-                    {isLoading ? (
-                         <span className="flex items-center">
-                         <RefreshCw className="animate-spin -ml-1 mr-3 h-5 w-5" />
-                         Conectando...
-                         </span>
-                    ) : (
-                        <>
-                            <DownloadCloud className="mr-2 h-5 w-5" />
-                            Recargar Datos
-                        </>
-                    )}
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="flex-1 flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50 transition-all"
+                    >
+                        {isLoading ? (
+                            <span className="flex items-center">
+                            <RefreshCw className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                            Conectando...
+                            </span>
+                        ) : (
+                            <>
+                                <DownloadCloud className="mr-2 h-5 w-5" />
+                                Recargar Datos
+                            </>
+                        )}
+                    </button>
+                     <button
+                        type="button"
+                        onClick={handleManualCheck}
+                        disabled={isLoading || isChecking}
+                        className="flex-shrink-0 flex justify-center items-center py-3 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none transition-all"
+                        title="Verificar si hay cambios en GitHub ahora"
+                    >
+                         <Radio className={`h-5 w-5 ${isChecking ? 'animate-pulse text-blue-600' : 'text-slate-500'}`} />
+                    </button>
+                </div>
             </form>
 
             <div className="relative">
