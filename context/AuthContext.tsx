@@ -11,9 +11,12 @@ interface AuthContextType {
   user: User | null;
   usersUrl: string;
   isLoadingAuth: boolean;
+  authError: string | null;
   login: (username: string, pass: string, remember?: boolean) => Promise<boolean>;
   logout: () => void;
   createUser: (username: string, pass: string, role: User['role']) => Promise<{success: boolean, msg: string}>;
+  deleteUser: (username: string) => Promise<{success: boolean, msg: string}>;
+  downloadUsersJson: () => void;
   getUsers: () => User[];
 }
 
@@ -33,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [usersList, setUsersList] = useState<User[]>([]);
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Helper para convertir URL Raw de GitHub si es necesario
   const processUrl = (url: string) => {
@@ -41,36 +45,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (finalUrl.includes('github.com') && finalUrl.includes('/blob/')) {
           finalUrl = finalUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
       }
-      // NOTA: Eliminada la limpieza de /refs/heads/ ya que la URL proporcionada lo requiere.
       
       return finalUrl;
   };
 
   const fetchUsers = async () => {
+    setAuthError(null);
     try {
         const targetUrl = processUrl(DEFAULT_USERS_URL);
         // Agregamos timestamp para evitar caché agresivo del navegador
         console.log("Cargando usuarios desde:", targetUrl);
         const res = await fetch(`${targetUrl}?t=${Date.now()}`);
-        if (res.ok) {
-            const data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status} al acceder a GitHub`);
+        }
+
+        const text = await res.text();
+        
+        try {
+            const data = JSON.parse(text);
             if (Array.isArray(data)) {
                 setUsersList(data);
                 localStorage.setItem(LOCAL_USERS_CACHE, JSON.stringify(data)); // Actualizar caché
             } else {
-                console.error("El JSON de usuarios no es un array válido");
+                throw new Error("El archivo JSON no contiene un array de usuarios válido");
+            }
+        } catch (parseError: any) {
+            throw new Error(`Error de sintaxis en el archivo JSON: ${parseError.message}`);
+        }
+
+    } catch (e: any) {
+        console.error("Error fetching users json:", e);
+        setAuthError(e.message);
+        
+        // Fallback a caché o usuarios por defecto
+        const cached = localStorage.getItem(LOCAL_USERS_CACHE);
+        if (cached) {
+            try {
+                setUsersList(JSON.parse(cached));
+            } catch (cacheErr) {
+                 setUsersList(DEFAULT_USERS);
             }
         } else {
-            console.warn("No se pudo cargar el JSON de usuarios. Status:", res.status);
-            // Fallback a caché
-            const cached = localStorage.getItem(LOCAL_USERS_CACHE);
-            if (cached) setUsersList(JSON.parse(cached));
+            setUsersList(DEFAULT_USERS);
         }
-    } catch (e) {
-        console.error("Error fetching users json", e);
-        // Fallback a caché
-        const cached = localStorage.getItem(LOCAL_USERS_CACHE);
-        if (cached) setUsersList(JSON.parse(cached));
     }
   };
 
@@ -89,13 +108,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (username: string, pass: string, remember: boolean = false) => {
     setIsLoadingAuth(true);
     
-    // IMPORTANTE: No hacemos fetchUsers() aquí.
-    // Si lo hacemos, sobrescribimos los usuarios creados localmente (pero no subidos a GitHub) con la versión vieja de GitHub.
-    // Confiamos en la lista en memoria (usersList) o el caché local.
-
     // Obtenemos la lista más actualizada disponible localmente
     const cached = localStorage.getItem(LOCAL_USERS_CACHE);
-    const currentList = cached ? JSON.parse(cached) : usersList;
+    let currentList = usersList;
+    if (cached) {
+         try {
+             currentList = JSON.parse(cached);
+         } catch(e) { /* ignore */ }
+    }
+    
+    if (currentList.length === 0) currentList = DEFAULT_USERS;
     
     // Verificamos credenciales
     const found = currentList.find((u: any) => u.username === username && u.pass === pass);
@@ -136,31 +158,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
         const newUser: User = { username, pass, role };
-        const updatedList = [...usersList, newUser];
-
-        // Actualizamos estado y caché local inmediatamente
-        setUsersList(updatedList);
-        localStorage.setItem(LOCAL_USERS_CACHE, JSON.stringify(updatedList));
-
-        // Generar archivo JSON para descargar
-        const dataStr = JSON.stringify(updatedList, null, 2);
-        const blob = new Blob([dataStr], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        
-        // Crear elemento invisible para forzar la descarga
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "users.json";
-        document.body.appendChild(link);
-        link.click();
-        
-        // Limpieza
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        // Usamos functional update para asegurar que tenemos la lista más reciente
+        setUsersList(prev => {
+            const newList = [...prev, newUser];
+            localStorage.setItem(LOCAL_USERS_CACHE, JSON.stringify(newList));
+            return newList;
+        });
 
         return { 
             success: true, 
-            msg: 'Usuario añadido LOCALMENTE. Se descargó "users.json". ¡Súbelo a GitHub para que funcione en otros PC!' 
+            msg: 'Usuario añadido a la lista LOCAL. Recuerda descargar el JSON.' 
         };
 
     } catch (e) {
@@ -169,12 +176,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const deleteUser = async (username: string) => {
+    if (username === 'ADMIN') {
+        return { success: false, msg: 'No se puede eliminar el usuario base ADMIN.' };
+    }
+    
+    let deleted = false;
+    
+    // Usamos functional update para evitar race conditions y asegurar consistencia
+    setUsersList(prev => {
+        const filteredList = prev.filter(u => u.username !== username);
+        if (filteredList.length !== prev.length) {
+            deleted = true;
+            localStorage.setItem(LOCAL_USERS_CACHE, JSON.stringify(filteredList));
+        }
+        return filteredList;
+    });
+    
+    // Retornamos true si se ejecutó la acción, aunque el estado update es asíncrono,
+    // para el usuario la acción es "exitosa" si no hubo errores.
+    return { success: true, msg: 'Usuario eliminado LOCALMENTE.' };
+  };
+
+  const downloadUsersJson = () => {
+    // Generar archivo JSON para descargar
+    const dataStr = JSON.stringify(usersList, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    // Crear elemento invisible para forzar la descarga
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "users.json";
+    document.body.appendChild(link);
+    link.click();
+    
+    // Limpieza
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const getUsers = () => {
     return usersList;
   };
 
   return (
-    <AuthContext.Provider value={{ user, usersUrl: DEFAULT_USERS_URL, isLoadingAuth, login, logout, createUser, getUsers }}>
+    <AuthContext.Provider value={{ user, usersUrl: DEFAULT_USERS_URL, isLoadingAuth, authError, login, logout, createUser, deleteUser, downloadUsersJson, getUsers }}>
       {children}
     </AuthContext.Provider>
   );
