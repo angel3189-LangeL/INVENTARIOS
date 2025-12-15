@@ -72,7 +72,7 @@ export const Layout: React.FC = () => {
            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div className="flex items-center text-sm font-medium">
                     <AlertCircle className="w-5 h-5 mr-2 animate-pulse" />
-                    <span>Hay una nueva versión de los datos disponible en GitHub.</span>
+                    <span>Hay una nueva versión de los datos disponible en el SERVIDOR.</span>
                 </div>
                 <button 
                     onClick={() => refreshData()}

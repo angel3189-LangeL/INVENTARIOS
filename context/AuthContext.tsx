@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 export interface User {
   username: string;
   role: 'ADMINISTRADOR' | 'VISUALIZADOR';
+  pass?: string; // Optional for internal use, required for saving
 }
 
 interface AuthContextType {
@@ -12,6 +13,7 @@ interface AuthContextType {
   logout: () => void;
   createUser: (username: string, pass: string, role: User['role']) => boolean;
   getUsers: () => any[]; // For admin list
+  importUsers: (newUsers: any[]) => void; // New function
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,12 +79,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getUsers = () => {
     return JSON.parse(localStorage.getItem(USERS_KEY) || '[]').map((u: any) => ({
         username: u.username,
-        role: u.role
+        role: u.role,
+        pass: u.pass // Incluimos pass para poder exportar, aunque cuidado con seguridad en apps reales
     }));
   };
 
+  const importUsers = (newUsers: any[]) => {
+      // Validamos estructura básica
+      const validUsers = newUsers.filter(u => u.username && u.pass && (u.role === 'ADMINISTRADOR' || u.role === 'VISUALIZADOR'));
+      if (validUsers.length > 0) {
+          localStorage.setItem(USERS_KEY, JSON.stringify(validUsers));
+      }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, createUser, getUsers }}>
+    <AuthContext.Provider value={{ user, login, logout, createUser, getUsers, importUsers }}>
       {children}
     </AuthContext.Provider>
   );

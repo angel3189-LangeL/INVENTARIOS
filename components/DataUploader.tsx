@@ -66,7 +66,7 @@ export const DataUploader: React.FC = () => {
             </div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Sincronización de Datos</h2>
           <p className="text-gray-500 mb-6 sm:mb-8 text-sm">
-            El sistema está configurado para leer automáticamente desde GitHub.
+            El sistema está configurado para leer automáticamente desde el SERVIDOR.
           </p>
 
           <div className="space-y-6">
@@ -107,7 +107,7 @@ export const DataUploader: React.FC = () => {
                         onClick={handleManualCheck}
                         disabled={isLoading || isChecking}
                         className="flex-shrink-0 flex justify-center items-center py-3 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none transition-all"
-                        title="Verificar si hay cambios en GitHub ahora"
+                        title="Verificar si hay cambios en el SERVIDOR ahora"
                     >
                          <Radio className={`h-5 w-5 ${isChecking ? 'animate-pulse text-blue-600' : 'text-slate-500'}`} />
                     </button>
@@ -142,7 +142,7 @@ export const DataUploader: React.FC = () => {
             </div>
             
              <div className="mt-4 text-xs text-gray-400">
-                Para actualizar permanentemente, sube un nuevo <code>INVENTARIO.csv</code> a GitHub.
+                Para actualizar permanentemente, sube un nuevo <code>INVENTARIO.csv</code> al SERVIDOR.
             </div>
           </div>
         </div>
