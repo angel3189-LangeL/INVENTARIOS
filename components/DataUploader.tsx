@@ -81,7 +81,7 @@ export const DataUploader: React.FC = () => {
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         disabled={isLoading}
-                        readOnly={true} // Read-only for dashboard view
+                        readOnly={true} // Make read-only to avoid confusion, editable in Admin only
                     />
                 </div>
                 <div className="flex gap-2">

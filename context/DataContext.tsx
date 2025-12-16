@@ -5,26 +5,25 @@ import { parseCSV } from '../utils/csvParser';
 // ------------------------------------------------------------------
 // CONFIGURACIÓN POR DEFECTO (GITHUB)
 // ------------------------------------------------------------------
-// CORRECCIÓN: Eliminado '/refs/heads/' de la URL para compatibilidad con raw.githubusercontent.com
-const DEFAULT_CLOUD_URL = "https://raw.githubusercontent.com/angel3189-LangeL/datos-inventario/main/data/csv/INVENTARIO.csv";
-// Cambiamos a v3 para limpiar cualquier caché con la URL incorrecta anterior
-const STORAGE_URL_KEY = 'app_inventory_csv_url_v3';
-const UPDATE_CHECK_INTERVAL = 180000; 
+const DEFAULT_CLOUD_URL = "https://raw.githubusercontent.com/angel3189-LangeL/datos-inventario/refs/heads/main/data/csv/INVENTARIO.csv";
+const STORAGE_URL_KEY = 'app_inventory_csv_url';
+// Intervalo de chequeo de actualizaciones (5 minutos = 300,000 ms)
+const UPDATE_CHECK_INTERVAL = 300000; 
 // ------------------------------------------------------------------
 
 interface DataContextType {
   data: ProductRow[];
   isLoading: boolean;
   isUpdateAvailable: boolean;
-  currentSha: string; 
-  lastCheckTime: Date | null; 
+  currentSha: string; // Exponemos el SHA actual
+  lastCheckTime: Date | null; // Nueva propiedad para saber cuándo revisó por última vez
   loadData: (file: File) => Promise<void>;
   loadDataFromUrl: (url: string, forceRefresh?: boolean) => Promise<void>;
   resetData: () => void;
   setCustomUrl: (url: string) => void;
   getCustomUrl: () => string;
   refreshData: () => void;
-  checkForUpdates: () => Promise<boolean>; 
+  checkForUpdates: () => Promise<boolean>; // Devuelve true si encontró update
   uniqueStores: string[];
   uniqueBrands: string[];
   uniqueFormats: string[];
@@ -42,52 +41,68 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
   const checkIntervalRef = useRef<any>(null);
 
+  // Helper to filter global exclusions (CD and CP)
   const processData = (rawData: ProductRow[]) => {
      return rawData.filter(d => d.FORMATO !== 'CD' && d.FORMATO !== 'CP');
   };
 
+  // Helper para convertir URL Raw -> URL API de GitHub para obtener metadatos (SHA)
   const getGitHubApiUrl = (rawUrl: string) => {
+    // Regex para capturar owner, repo, branch, path
+    // raw.githubusercontent.com/USER/REPO/BRANCH/PATH...
+    // Soporta raw.githubusercontent.com/USER/REPO/main/FILE o refs/heads/main/FILE
+    
+    // Limpieza preventiva de la URL para la API
     let cleanUrl = rawUrl;
     if (cleanUrl.includes('/refs/heads/')) {
         cleanUrl = cleanUrl.replace('/refs/heads/', '/');
     }
+
     const match = cleanUrl.match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)/);
     if (!match) return null;
     const [_, owner, repo, branch, path] = match;
+    // URL API: https://api.github.com/repos/USER/REPO/contents/PATH?ref=BRANCH
     return `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
   };
 
   const checkGitHubUpdate = async (url: string): Promise<boolean> => {
-    setLastCheckTime(new Date());
+    setLastCheckTime(new Date()); // Actualizamos la hora de verificación
     const apiUrl = getGitHubApiUrl(url);
-    if (!apiUrl) return false;
+    if (!apiUrl) {
+        // No es GitHub, no podemos chequear SHA via API
+        return false;
+    }
 
-    console.log("Verificando actualizaciones (GitHub)...");
+    console.log("Verificando actualizaciones en GitHub...");
     try {
       const response = await fetch(apiUrl, { cache: 'no-cache' });
       if (response.ok) {
         const json = await response.json();
+        // Si tenemos un SHA actual y es diferente al que viene de la API, hay update
         if (currentSha && json.sha && json.sha !== currentSha) {
-            console.log("Nueva versión detectada. SHA Antiguo:", currentSha, "SHA Nuevo:", json.sha);
+            console.log("Nueva versión detectada en GitHub. SHA Antiguo:", currentSha, "SHA Nuevo:", json.sha);
             setIsUpdateAvailable(true);
             return true;
+        } else {
+            console.log("No hay actualizaciones. SHA actual coincide:", currentSha);
+            return false;
         }
       }
       return false;
     } catch (error) {
-      console.warn("Error verificando update:", error);
+      console.warn("No se pudo verificar actualizaciones en GitHub:", error);
       return false;
     }
   };
 
   const checkForUpdates = async () => {
       const url = getCustomUrl();
-      if (!url) return false;
       return await checkGitHubUpdate(url);
   };
 
   const loadData = async (file: File) => {
     setIsLoading(true);
+    // Al cargar archivo manual, desactivamos chequeos automáticos
     setIsUpdateAvailable(false);
     setCurrentSha('');
     if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
@@ -97,7 +112,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setData(processData(parsedData));
     } catch (error) {
       console.error("Error parsing CSV", error);
-      alert("Error al leer el archivo CSV. Revisa el formato.");
+      alert("Error al leer el archivo CSV.");
     } finally {
       setIsLoading(false);
     }
@@ -106,32 +121,41 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadDataFromUrl = async (url: string, forceRefresh: boolean = false) => {
     if (!url) return;
     setIsLoading(true);
-    setIsUpdateAvailable(false);
+    setIsUpdateAvailable(false); // Reset flag al cargar
     
+    // 1. Clean URL Logic
     let targetUrl = url.trim();
     
-    // CORRECCIÓN: Lógica robusta para limpiar URLs de GitHub
+    // Fix GitHub Raw Links
     if (targetUrl.includes('github.com') && targetUrl.includes('/blob/')) {
       targetUrl = targetUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
     }
-    // Eliminar 'refs/heads/' si está presente en raw.githubusercontent.com
+    // Remove refs/heads/ which breaks raw links sometimes
     if (targetUrl.includes('raw.githubusercontent.com') && targetUrl.includes('/refs/heads/')) {
         targetUrl = targetUrl.replace('/refs/heads/', '/');
     }
 
     try {
       let text = '';
-      
+      let usedProxy = false;
+
+      // Intentar obtener el SHA actual antes de cargar (si es GitHub)
       const apiUrl = getGitHubApiUrl(targetUrl);
       if (apiUrl) {
          fetch(apiUrl).then(r => r.json()).then(d => {
-             if(d.sha) setCurrentSha(d.sha);
-         }).catch(e => console.warn("No SHA available", e));
+             if(d.sha) {
+                 console.log("SHA inicial establecido:", d.sha);
+                 setCurrentSha(d.sha);
+             }
+         }).catch(e => console.warn("No se pudo obtener SHA inicial", e));
       } else {
-          setCurrentSha('EXTERNAL');
+          setCurrentSha(''); // Reset sha si no es github
       }
 
       try {
+         // ESTRATEGIA DE CARGA: Directa -> Proxy 1 (corsproxy.io) -> Proxy 2 (allorigins)
+         
+         // INTENTO 1: Fetch Directo
          let fetchUrl = targetUrl;
          const options: RequestInit = {};
 
@@ -139,49 +163,70 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const separator = targetUrl.includes('?') ? '&' : '?';
             fetchUrl = `${targetUrl}${separator}t=${new Date().getTime()}`;
             options.cache = 'reload';
+            console.log("Forzando descarga fresca de:", fetchUrl);
+         } else {
+            console.log("Cargando (usando caché de navegador si es posible):", fetchUrl);
          }
          
-         console.log(`Intentando cargar URL: ${fetchUrl}`);
          const response = await fetch(fetchUrl, options);
-         
-         if (!response.ok) throw new Error(`Status ${response.status}`);
+         if (!response.ok) throw new Error(`Direct Status ${response.status}`);
          text = await response.text();
 
-      } catch (directError: any) {
-         console.warn(`Fallo carga directa: ${directError.message}. Intentando Proxy...`);
-         // Fallback simple para GitHub si falla directo
+      } catch (directError) {
+         console.warn(`Carga directa fallida para ${targetUrl}. Intentando Proxies...`, directError);
+         usedProxy = true;
+         
          try {
+             // INTENTO 2: corsproxy.io
              const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+             console.log("Intentando corsproxy.io...");
              const response = await fetch(proxyUrl);
-             if (!response.ok) throw new Error(`Proxy Status: ${response.status}`);
+             if (!response.ok) throw new Error(`Proxy 1 Status: ${response.status}`);
              text = await response.text();
-         } catch (proxyError) {
-             console.error("Fallo definitivo de carga.");
-             throw new Error("No se pudo cargar el archivo desde GitHub. Verifica el enlace.");
+         } catch (proxy1Error) {
+             console.warn(`Proxy 1 falló. Intentando Proxy 2...`, proxy1Error);
+             
+             // INTENTO 3: allorigins.win
+             const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}&disableCache=${Date.now()}`;
+             console.log("Intentando allorigins...");
+             const response = await fetch(proxyUrl);
+             if (!response.ok) throw new Error(`Proxy 2 Status: ${response.status}`);
+             text = await response.text();
          }
       }
 
+      // 5. Parse
       const parsedData = await parseCSV(text);
       
       if (parsedData.length === 0) {
-        console.warn("CSV cargado pero vacío.");
+        console.warn("El CSV cargado está vacío.");
       } else {
-        console.log(`Cargados ${parsedData.length} registros.`);
+        console.log(`Datos cargados exitosamente (${parsedData.length} filas). Proxy usado: ${usedProxy}`);
       }
       
       setData(processData(parsedData));
 
+      // 6. Setup Interval for updates (Only works reliably for GitHub)
       if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
       if (apiUrl) {
           checkIntervalRef.current = setInterval(() => {
-              checkGitHubUpdate(targetUrl);
+              const now = new Date();
+              const hour = now.getHours();
+              const day = now.getDay(); 
+
+              const isWeekDay = day >= 1 && day <= 5; 
+              const isWorkHour = hour >= 8 && hour < 12;
+
+              if (isWeekDay && isWorkHour) {
+                  checkGitHubUpdate(targetUrl);
+              } else {
+                  console.log(`Sincronización pausada. Hora: ${now.toLocaleTimeString()}, Día: ${day}. Regla: L-V 08:00-12:00.`);
+              }
           }, UPDATE_CHECK_INTERVAL);
       }
 
     } catch (error) {
-      console.error("Error loading remote CSV:", error);
-      alert("Error cargando datos: " + (error as any).message);
-      setData([]);
+      console.error("Error cargando CSV remoto:", error);
     } finally {
       setIsLoading(false);
       setLastCheckTime(new Date());
@@ -199,7 +244,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadDataFromUrl(url, true);
       } else {
         localStorage.removeItem(STORAGE_URL_KEY);
-        loadDataFromUrl(DEFAULT_CLOUD_URL, true); // Recargar default (GitHub)
+        loadDataFromUrl(DEFAULT_CLOUD_URL, true);
       }
   };
 
@@ -209,17 +254,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshData = () => {
       const url = getCustomUrl();
-      if (url) loadDataFromUrl(url, true);
+      loadDataFromUrl(url, true);
   };
 
+  // Auto-load data on mount
   useEffect(() => {
-    // Carga inicial
     const savedUrl = localStorage.getItem(STORAGE_URL_KEY);
-    const urlToLoad = savedUrl || DEFAULT_CLOUD_URL;
+    const targetUrl = savedUrl || DEFAULT_CLOUD_URL;
     
-    // Si no hay datos, intentar cargar
-    if (data.length === 0) {
-        loadDataFromUrl(urlToLoad, false);
+    if (targetUrl && data.length === 0) {
+        loadDataFromUrl(targetUrl, false);
     }
     return () => {
         if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
@@ -242,9 +286,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadDataFromUrl, 
         resetData, 
         setCustomUrl, 
-        getCustomUrl, 
+        getCustomUrl,
         refreshData, 
-        checkForUpdates, 
+        checkForUpdates,
         uniqueStores, 
         uniqueBrands, 
         uniqueFormats 

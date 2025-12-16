@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (username: string, pass: string, remember?: boolean) => Promise<boolean>;
   logout: () => void;
   createUser: (username: string, pass: string, role: User['role']) => Promise<{success: boolean, msg: string}>;
+  deleteUser: (username: string) => Promise<{success: boolean, msg: string}>;
   downloadUsersJson: () => void;
   getUsers: () => User[];
 }
@@ -24,8 +25,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const SESSION_KEY = 'app_session_user';
 const LOCAL_USERS_CACHE = 'app_users_cache';
 
-// URL FIJA PARA USUARIOS - Eliminado 'refs/heads/'
-const DEFAULT_USERS_URL = "https://raw.githubusercontent.com/angel3189-LangeL/datos-inventario/main/data/json/users.json";
+// URL FIJA PARA USUARIOS
+const DEFAULT_USERS_URL = "https://raw.githubusercontent.com/angel3189-LangeL/datos-inventario/refs/heads/main/data/json/users.json";
 
 const DEFAULT_USERS: User[] = [
     { username: 'ADMIN', pass: '123456', role: 'ADMINISTRADOR' }
@@ -37,14 +38,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Helper para limpiar URLs incorrectas (refs/heads)
+  // Helper para convertir URL Raw de GitHub si es necesario
   const processUrl = (url: string) => {
       let finalUrl = url;
+      // Corregir si el usuario pega un link de blob
       if (finalUrl.includes('github.com') && finalUrl.includes('/blob/')) {
           finalUrl = finalUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
       }
+      // Corregir refs/heads/ en links raw si es necesario
       if (finalUrl.includes('raw.githubusercontent.com') && finalUrl.includes('/refs/heads/')) {
-          finalUrl = finalUrl.replace('/refs/heads/', '/');
+        finalUrl = finalUrl.replace('/refs/heads/', '/');
       }
       
       return finalUrl;
@@ -177,6 +180,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const deleteUser = async (username: string) => {
+    if (username === 'ADMIN') {
+        return { success: false, msg: 'No se puede eliminar el usuario base ADMIN.' };
+    }
+    
+    let deleted = false;
+    
+    // Usamos functional update para evitar race conditions y asegurar consistencia
+    setUsersList(prev => {
+        const filteredList = prev.filter(u => u.username !== username);
+        if (filteredList.length !== prev.length) {
+            deleted = true;
+            localStorage.setItem(LOCAL_USERS_CACHE, JSON.stringify(filteredList));
+        }
+        return filteredList;
+    });
+    
+    // Retornamos true si se ejecutó la acción, aunque el estado update es asíncrono,
+    // para el usuario la acción es "exitosa" si no hubo errores.
+    return { success: true, msg: 'Usuario eliminado LOCALMENTE.' };
+  };
+
   const downloadUsersJson = () => {
     // Generar archivo JSON para descargar
     const dataStr = JSON.stringify(usersList, null, 2);
@@ -200,7 +225,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, usersUrl: DEFAULT_USERS_URL, isLoadingAuth, authError, login, logout, createUser, downloadUsersJson, getUsers }}>
+    <AuthContext.Provider value={{ user, usersUrl: DEFAULT_USERS_URL, isLoadingAuth, authError, login, logout, createUser, deleteUser, downloadUsersJson, getUsers }}>
       {children}
     </AuthContext.Provider>
   );

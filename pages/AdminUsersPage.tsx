@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { Shield, Github, Search, Wifi, Loader, FileJson, Download, AlertTriangle, Plus } from 'lucide-react';
+import { Shield, Github, Search, Wifi, Loader, FileJson, Download, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 
 export const AdminUsersPage: React.FC = () => {
-  const { getUsers, createUser, downloadUsersJson, usersUrl, authError } = useAuth();
+  const { getUsers, createUser, deleteUser, downloadUsersJson, usersUrl, authError, user: currentUser } = useAuth();
   const { checkForUpdates, currentSha, lastCheckTime, getCustomUrl } = useData();
   
   // User Management State
@@ -37,6 +37,19 @@ export const AdminUsersPage: React.FC = () => {
     }
     setIsProcessing(false);
     setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleDelete = async (username: string) => {
+      // Usar confirmación nativa
+      if (!window.confirm(`¿Estás seguro de eliminar a ${username}?`)) return;
+      
+      const result = await deleteUser(username);
+      if (result.success) {
+          setMsg(result.msg);
+      } else {
+          setMsg(`Error: ${result.msg}`);
+      }
+      setTimeout(() => setMsg(''), 3000);
   };
 
   const handleDownload = () => {
@@ -157,8 +170,8 @@ export const AdminUsersPage: React.FC = () => {
                 Gestión de Usuarios
             </h3>
             <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-                Añade usuarios a la lista local. <br/>
-                <span className="text-orange-600 font-semibold">Importante:</span> Para aplicar los cambios, deberás descargar el JSON y reemplazar el archivo <code>users.json</code> en GitHub manualmente.
+                Añade o elimina usuarios de la lista local. <br/>
+                <span className="text-orange-600 font-semibold">Importante:</span> Los cambios no se aplican a otros dispositivos hasta que descargues y subas el archivo.
             </p>
             <form onSubmit={handleCreate} className="space-y-3 flex-grow">
                 <div>
@@ -236,6 +249,22 @@ export const AdminUsersPage: React.FC = () => {
                                         <span className="text-[10px] text-gray-400">{u.role}</span>
                                     </div>
                                 </div>
+                                <div className="flex items-center">
+                                    {/* No permitir borrar ADMIN ni al usuario logueado */}
+                                    {u.username !== 'ADMIN' && u.username !== currentUser?.username && (
+                                        <button 
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(u.username);
+                                            }}
+                                            className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                                            title="Eliminar usuario"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -245,7 +274,7 @@ export const AdminUsersPage: React.FC = () => {
 
                 <div className="mt-auto pt-2 border-t border-gray-100">
                     <p className="text-[10px] text-gray-500 mb-2 text-center">
-                        Cuando termines de agregar, descarga el archivo final.
+                        Cuando termines de agregar o borrar, descarga el archivo final.
                     </p>
                     <button 
                         type="button"
