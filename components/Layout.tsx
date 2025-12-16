@@ -6,13 +6,14 @@ import { useAuth } from '../context/AuthContext';
 import { DataUploader } from './DataUploader';
 
 export const Layout: React.FC = () => {
-  const { data, isLoading, isUpdateAvailable, refreshData } = useData();
+  const { data, isLoading, isUpdateAvailable, refreshData, resetData } = useData();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    resetData(); // Limpiamos los datos de memoria
     logout();
     navigate('/');
   };

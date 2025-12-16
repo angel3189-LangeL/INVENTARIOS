@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Loader } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { login, isLoadingAuth } = useAuth();
+  const { refreshData } = useData();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -16,6 +18,8 @@ export const LoginPage: React.FC = () => {
     setError('');
     const success = await login(username, password, remember);
     if (success) {
+      // Forzar la recarga de datos desde la nube (GitHub) al iniciar sesión
+      refreshData();
       navigate('/inventory');
     } else {
       setError('Credenciales inválidas o error de conexión');
