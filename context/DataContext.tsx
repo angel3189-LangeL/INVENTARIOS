@@ -97,6 +97,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkForUpdates = async () => {
       const url = getCustomUrl();
+      if (!url) return false;
       return await checkGitHubUpdate(url);
   };
 
@@ -244,7 +245,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadDataFromUrl(url, true);
       } else {
         localStorage.removeItem(STORAGE_URL_KEY);
-        loadDataFromUrl(DEFAULT_CLOUD_URL, true);
+        loadDataFromUrl(DEFAULT_CLOUD_URL, true); // Fallback to default
       }
   };
 
@@ -262,6 +263,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const savedUrl = localStorage.getItem(STORAGE_URL_KEY);
     const targetUrl = savedUrl || DEFAULT_CLOUD_URL;
     
+    // Auto load if we have a URL (which we now have by default)
     if (targetUrl && data.length === 0) {
         loadDataFromUrl(targetUrl, false);
     }
