@@ -24,8 +24,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const SESSION_KEY = 'app_session_user';
 const LOCAL_USERS_CACHE = 'app_users_cache';
 
-// URL FIJA PARA USUARIOS - Actualizada con refs/heads/main explícitamente
-const DEFAULT_USERS_URL = "https://raw.githubusercontent.com/angel3189-LangeL/DATOS/refs/heads/main/users.json";
+// URL FIJA PARA USUARIOS - Eliminado 'refs/heads/'
+const DEFAULT_USERS_URL = "https://raw.githubusercontent.com/angel3189-LangeL/datos-inventario/main/data/json/users.json";
 
 const DEFAULT_USERS: User[] = [
     { username: 'ADMIN', pass: '123456', role: 'ADMINISTRADOR' }
@@ -37,12 +37,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Helper para convertir URL Raw de GitHub si es necesario
+  // Helper para limpiar URLs incorrectas (refs/heads)
   const processUrl = (url: string) => {
       let finalUrl = url;
-      // Corregir si el usuario pega un link de blob
       if (finalUrl.includes('github.com') && finalUrl.includes('/blob/')) {
           finalUrl = finalUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+      }
+      if (finalUrl.includes('raw.githubusercontent.com') && finalUrl.includes('/refs/heads/')) {
+          finalUrl = finalUrl.replace('/refs/heads/', '/');
       }
       
       return finalUrl;
