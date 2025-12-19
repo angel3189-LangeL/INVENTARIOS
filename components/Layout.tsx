@@ -21,10 +21,10 @@ export const Layout: React.FC = () => {
   // If loading data
   if (isLoading) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-black">
             <div className="text-center">
-                <Loader className="h-8 w-8 animate-spin text-slate-800 mx-auto mb-2" />
-                <p className="text-slate-600">Cargando datos...</p>
+                <Loader className="h-8 w-8 animate-spin text-slate-200 mx-auto mb-2" />
+                <p className="text-slate-400">Cargando datos...</p>
             </div>
         </div>
     );
@@ -33,13 +33,13 @@ export const Layout: React.FC = () => {
   // If no data and not loading (URL failed or empty)
   if (data.length === 0) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-black">
              <div className="w-full max-w-4xl p-4">
                 <div className="mb-4 text-center">
-                     <p className="text-red-500 font-medium bg-red-50 p-3 rounded border border-red-200 inline-block">
+                     <p className="text-red-400 font-medium bg-red-900/20 p-3 rounded border border-red-800 inline-block">
                         No se cargaron datos automáticos. Por favor carga un archivo manual.
                      </p>
-                     <button onClick={handleLogout} className="ml-4 text-sm underline text-slate-600">Salir</button>
+                     <button onClick={handleLogout} className="ml-4 text-sm underline text-slate-400 hover:text-slate-200">Salir</button>
                 </div>
                 <DataUploader />
              </div>
@@ -55,7 +55,7 @@ export const Layout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="min-h-screen flex flex-col bg-black">
       {/* Update Notification Banner */}
       {isUpdateAvailable && (
         <div className="bg-blue-600 text-white px-4 py-2 shadow-md relative z-50">
@@ -76,7 +76,7 @@ export const Layout: React.FC = () => {
       )}
 
       {/* Top Header */}
-      <header className="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
+      <header className="bg-slate-900 text-white sticky top-0 z-50 shadow-md border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-row items-center justify-between h-14 sm:h-16">
             

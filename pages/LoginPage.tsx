@@ -27,8 +27,8 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm border border-gray-200">
         <div className="text-center mb-6">
             {/* Logo de la empresa */}
             <img 

@@ -60,7 +60,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                 </div>
                 <input
                     type="text"
-                    className="block w-full pl-8 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-300 focus:ring-0 text-xs"
+                    className="block w-full pl-8 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-300 focus:ring-0 text-xs text-gray-900"
                     placeholder="Buscar..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -70,7 +70,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           </div>
 
           <div 
-             className="cursor-pointer select-none relative py-1.5 pl-3 pr-9 hover:bg-indigo-50 text-gray-500 text-xs"
+             className="cursor-pointer select-none relative py-1.5 pl-3 pr-9 hover:bg-indigo-50 text-gray-500 text-xs bg-white"
              onClick={() => {
                onChange("");
                setIsOpen(false);
@@ -81,14 +81,14 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           </div>
 
           {filteredOptions.length === 0 ? (
-            <div className="cursor-default select-none relative py-2 pl-3 pr-9 text-gray-700 text-xs">
+            <div className="cursor-default select-none relative py-2 pl-3 pr-9 text-gray-700 text-xs bg-white">
               No se encontraron resultados
             </div>
           ) : (
             filteredOptions.map((opt, idx) => (
               <div
                 key={`${opt}-${idx}`}
-                className={`cursor-pointer select-none relative py-1.5 pl-3 pr-9 hover:bg-indigo-50 text-xs ${value === opt ? 'bg-indigo-50 text-indigo-900 font-semibold' : 'text-gray-900'}`}
+                className={`cursor-pointer select-none relative py-1.5 pl-3 pr-9 hover:bg-indigo-50 text-xs bg-white ${value === opt ? 'bg-indigo-50 text-indigo-900 font-semibold' : 'text-gray-900'}`}
                 onClick={() => {
                   onChange(opt);
                   setIsOpen(false);

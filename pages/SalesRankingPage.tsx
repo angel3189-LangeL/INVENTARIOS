@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import { SearchableSelect } from '../components/SearchableSelect';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, LabelList } from 'recharts';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, ChevronDown } from 'lucide-react';
 
 const CustomizedYAxisTick = (props: any) => {
   const { x, y, payload } = props;
@@ -136,21 +135,35 @@ export const SalesRankingPage: React.FC = () => {
                 <p className="text-[10px] sm:text-xs text-gray-500 ml-7">Acumulado últimos 30 días</p>
              </div>
              <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full md:w-auto">
-                <div className="w-full sm:w-48">
-                    <SearchableSelect
-                        options={uniqueFormats}
+                <div className="w-full sm:w-48 relative">
+                    <select
+                        className="appearance-none block w-full pl-3 pr-8 py-1.5 text-xs border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 h-8 sm:h-9"
                         value={selectedFormat}
-                        onChange={setSelectedFormat}
-                        placeholder="Formato"
-                    />
+                        onChange={(e) => setSelectedFormat(e.target.value)}
+                    >
+                        <option value="">Formato: Todos</option>
+                        {uniqueFormats.map((f) => (
+                            <option key={f} value={f}>{f}</option>
+                        ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <ChevronDown className="h-4 w-4" />
+                    </div>
                 </div>
-                <div className="w-full sm:w-48">
-                    <SearchableSelect
-                        options={uniqueBrands}
+                <div className="w-full sm:w-48 relative">
+                     <select
+                        className="appearance-none block w-full pl-3 pr-8 py-1.5 text-xs border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 h-8 sm:h-9"
                         value={selectedBrand}
-                        onChange={setSelectedBrand}
-                        placeholder="Marca"
-                    />
+                        onChange={(e) => setSelectedBrand(e.target.value)}
+                    >
+                        <option value="">Marca: Todas</option>
+                        {uniqueBrands.map((b) => (
+                            <option key={b} value={b}>{b}</option>
+                        ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <ChevronDown className="h-4 w-4" />
+                    </div>
                 </div>
             </div>
         </div>
